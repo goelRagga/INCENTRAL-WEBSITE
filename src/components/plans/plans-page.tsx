@@ -36,7 +36,7 @@ export function PlansPage() {
 
       <section
         aria-labelledby={showcase.titleId}
-        className="h139-plans border-b border-[#e3e9ec] bg-[linear-gradient(180deg,#fff_0%,#f8fafc_100%)]"
+        className="h139-plans"
       >
         <Container>
           <SectionHead

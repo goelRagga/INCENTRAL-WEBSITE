@@ -33,10 +33,7 @@ export function PlansSection({
     <section
       id={id}
       aria-labelledby={titleId}
-      className={cn(
-        "h139-plans border-b border-[#e3e9ec] bg-[linear-gradient(180deg,#fff_0%,#f8fafc_100%)]",
-        className
-      )}
+      className={cn("h139-plans", className)}
     >
       <Container>
         <SectionHead

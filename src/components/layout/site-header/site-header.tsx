@@ -112,11 +112,11 @@ export function SiteHeader() {
 
         <nav
           aria-label="Primary navigation"
-          className="hidden min-w-0 justify-self-center min-[1100px]:block"
+          className="inc-primary-nav hidden min-w-0 justify-self-center min-[1100px]:block"
         >
           <ul className="m-0 flex list-none items-center justify-center gap-[27px] p-0 max-[1160px]:gap-[17px]">
             <li
-              className="static"
+              className="inc-nav-plans static"
               onMouseEnter={() => {
                 if (window.innerWidth >= desktopMegaBreakpoint) {
                   openPlansMenu();
@@ -140,7 +140,7 @@ export function SiteHeader() {
                   setPlansOpen((current) => !current);
                 }}
                 className={cn(
-                  "inc-nav-underline relative flex min-h-12 cursor-pointer items-center gap-1.5 border-0 bg-transparent px-0.5 text-[15px] font-medium whitespace-nowrap text-inc-nav transition-colors duration-200",
+                  "inc-nav-trigger inc-nav-underline relative flex min-h-12 cursor-pointer items-center gap-1.5 border-0 bg-transparent px-0.5 text-[15px] font-medium whitespace-nowrap text-inc-nav transition-colors duration-200",
                   "hover:text-inc-nav-hover focus-visible:text-inc-nav-hover",
                   plansOpen && "text-inc-nav-hover"
                 )}

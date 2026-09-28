@@ -1,0 +1,49 @@
+/* InCentral v359: canonical eyebrow-to-heading rhythm across the portal.
+   This layer intentionally owns only the vertical relationship between
+   section eyebrows/kickers and the heading that immediately follows. */
+:root{
+  --inc-eyebrow-heading-gap:5px;
+}
+
+/* Canonical eyebrow spacing. Older page-level values are overridden here. */
+html body .eyebrow.eyebrow{
+  margin-top:0!important;
+  margin-bottom:var(--inc-eyebrow-heading-gap)!important;
+}
+html body .eyebrow.eyebrow + h1,
+html body .eyebrow.eyebrow + h2,
+html body .eyebrow.eyebrow + h3,
+html body .eyebrow.eyebrow + h4{
+  margin-top:0!important;
+}
+
+/* Heading kickers that are intentionally not authored with .eyebrow. */
+html body .inc-plans-mega-kicker,
+html body .pcmp-modal-kicker,
+html body .help70-support-kicker,
+html body .h140-kicker,
+html body .geo-form-kicker{
+  margin-top:0!important;
+  margin-bottom:var(--inc-eyebrow-heading-gap)!important;
+}
+html body .inc-plans-mega-kicker + h2,
+html body .pcmp-modal-kicker + h3,
+html body .help70-support-kicker + h2,
+html body .h140-kicker + h2,
+html body .geo-form-kicker + h3{
+  margin-top:0!important;
+}
+
+/* The Solutions mega-menu used a flex gap in addition to kicker margin,
+   effectively doubling the intended eyebrow-to-title spacing. */
+html body .inc-mega-title{
+  gap:0!important;
+}
+html body .inc-mega-title > h2 + p{
+  margin-top:7px!important;
+}
+
+/* Keep the same compact eyebrow rhythm on mobile section headers. */
+@media (max-width:760px){
+  :root{--inc-eyebrow-heading-gap:4px;}
+}
