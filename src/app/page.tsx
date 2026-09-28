@@ -1,4 +1,4 @@
-import { HeroSection, ProofSection } from "@/components/home";
+import { HeroSection, ProofSection, TestimonialsSection } from "@/components/home";
 import { PlanFinderSection } from "@/components/plan-finder";
 import { PlansSection } from "@/components/plans";
 import { plansSectionHome } from "@/config/plans";
@@ -20,6 +20,7 @@ export default function HomePage() {
         gridLabel={plans.gridLabel}
       />
       <PlanFinderSection />
+      <TestimonialsSection />
       <ProofSection {...proofSectionHome} />
     </main>
   );
