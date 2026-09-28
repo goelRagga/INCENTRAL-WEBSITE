@@ -2270,6 +2270,593 @@ main .h149-proof-note {
   }
 }
 
+
+/* account-v315 — support ticket detail dialog */
+/* InCentral v315: researched support-ticket detail experience */
+.a295-dialog[data-ticket-dialog],
+.account295 [data-ticket-dialog]{
+  width:min(720px,calc(100% - 32px));
+  max-height:min(860px,calc(100vh - 32px));
+  border-radius:16px;
+}
+.a295-dialog[data-ticket-dialog] .a295-dialog-head,
+.account295 [data-ticket-dialog] .a295-dialog-head{
+  padding:20px 22px 18px;
+  align-items:flex-start;
+}
+.a295-dialog[data-ticket-dialog] .a295-dialog-title>span,
+.account295 [data-ticket-dialog] .a295-dialog-title>span{
+  color:#8a959b;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.a295-dialog[data-ticket-dialog] .a295-dialog-title h2,
+.account295 [data-ticket-dialog] .a295-dialog-title h2{
+  margin-top:6px!important;
+  max-width:none;
+  color:#172126!important;
+  font-size:22px!important;
+  font-weight:600!important;
+  line-height:1.18!important;
+  letter-spacing:-.025em!important;
+}
+.a295-dialog[data-ticket-dialog] .a295-dialog-body,
+.account295 [data-ticket-dialog] .a295-dialog-body{
+  padding:20px 22px 22px;
+  background:#fbfcfd;
+}
+
+.a315-ticket-summary{
+  display:grid;
+  gap:14px;
+  padding:15px 16px;
+  border:1px solid #dfe7eb;
+  border-radius:14px;
+  background:#fff;
+}
+.a315-ticket-summary-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.a315-ticket-state{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+.a315-ticket-state>span:last-child{
+  color:#74858d;
+  font-size:11.5px;
+  line-height:1.35;
+}
+.a315-ticket-facts{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  margin:0;
+  padding-top:13px;
+  border-top:1px solid #edf1f3;
+}
+.a315-ticket-fact{
+  min-width:0;
+  padding:0 16px;
+  border-left:1px solid #edf1f3;
+}
+.a315-ticket-fact:first-child{padding-left:0;border-left:0}
+.a315-ticket-fact:last-child{padding-right:0}
+.a315-ticket-fact dt{
+  margin:0;
+  color:#84939a;
+  font-size:10px;
+  font-weight:500;
+  line-height:1.25;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+.a315-ticket-fact dd{
+  margin:5px 0 0;
+  color:#263842;
+  font-size:12.5px;
+  font-weight:500;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+
+.a315-thread{
+  margin-top:20px;
+}
+.a315-thread-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:13px;
+}
+.a315-thread-head h3{
+  margin:0!important;
+  color:#263842;
+  font-size:13px!important;
+  font-weight:600!important;
+  line-height:1.3!important;
+}
+.a315-thread-head span{
+  color:#87959b;
+  font-size:10.5px;
+  line-height:1.3;
+}
+.a315-thread-list{
+  display:grid;
+  gap:14px;
+}
+.a315-thread-message{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  max-width:84%;
+}
+.a315-thread-message.is-customer{
+  grid-template-columns:minmax(0,1fr) 34px;
+  justify-self:end;
+}
+.a315-thread-avatar{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#eef3f6;
+  color:#536872;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.a315-thread-message.is-customer .a315-thread-avatar{
+  grid-column:2;
+  background:#e8f2ff;
+  color:#0b61b7;
+}
+.a315-thread-content{min-width:0}
+.a315-thread-message.is-customer .a315-thread-content{
+  grid-column:1;
+  grid-row:1;
+}
+.a315-thread-byline{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  margin:0 2px 5px;
+}
+.a315-thread-message.is-customer .a315-thread-byline{
+  justify-content:flex-end;
+}
+.a315-thread-byline strong{
+  color:#344a55;
+  font-size:10.5px;
+  font-weight:500;
+  line-height:1.3;
+}
+.a315-thread-byline time{
+  color:#8b999f;
+  font-size:9.5px;
+  line-height:1.3;
+}
+.a315-thread-bubble{
+  padding:12px 14px;
+  border:1px solid #e4eaed;
+  border-radius:4px 14px 14px 14px;
+  background:#fff;
+  color:#3a505b;
+  font-size:12.5px;
+  font-weight:400;
+  line-height:1.55;
+  box-shadow:0 2px 8px rgba(20,43,57,.025);
+}
+.a315-thread-message.is-customer .a315-thread-bubble{
+  border-color:#d7e8fb;
+  border-radius:14px 4px 14px 14px;
+  background:#edf5ff;
+  color:#174f7c;
+}
+
+.a315-reply{
+  margin-top:20px;
+  padding:16px;
+  border:1px solid #dfe7eb;
+  border-radius:14px;
+  background:#fff;
+}
+.a315-reply-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:9px;
+}
+.a315-reply-head strong{
+  display:block;
+  color:#263842;
+  font-size:12.5px;
+  font-weight:600;
+  line-height:1.3;
+}
+.a315-reply-head span{
+  display:block;
+  margin-top:3px;
+  color:#819097;
+  font-size:10.5px;
+  line-height:1.4;
+}
+.a315-reply textarea{
+  width:100%;
+  min-height:92px;
+  resize:vertical;
+  padding:11px 12px;
+  border:1px solid #cfdae0;
+  border-radius:11px;
+  background:#fff;
+  color:#263842;
+  font:inherit;
+  font-size:12.5px;
+  line-height:1.5;
+  outline:none;
+}
+.a315-reply textarea::placeholder{color:#98a4a9}
+.a315-reply textarea:focus{
+  border-color:#78adde;
+  box-shadow:0 0 0 3px rgba(5,101,207,.08);
+}
+.a315-reply-footer{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin-top:11px;
+}
+.a315-attachment-field{
+  min-width:0;
+  flex:1 1 auto;
+}
+.a315-attachment-field label{
+  display:block;
+  margin-bottom:5px;
+  color:#586b75;
+  font-size:10.5px;
+  font-weight:500;
+  line-height:1.3;
+}
+.a315-attachment-field input[type="file"]{
+  display:block;
+  width:100%;
+  min-height:58px;
+  padding:8px 10px;
+  border:1px solid #d0dce2;
+  border-radius:14px;
+  background:#fff;
+  color:#667780;
+  font-family:inherit;
+  font-size:14px;
+  line-height:40px;
+  cursor:pointer;
+}
+.a315-attachment-field input[type="file"]::file-selector-button{
+  min-height:40px;
+  margin:0 14px 0 0;
+  padding:0 18px;
+  border:1px solid #b9c9d2;
+  border-radius:999px;
+  background:#f5f8fa;
+  color:#173447;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:600;
+  line-height:1;
+  cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+.a315-attachment-field input[type="file"]:hover::file-selector-button{
+  border-color:#8eabbc;
+  background:#edf4f8;
+  color:#0b65ce;
+}
+.a315-attachment-field input[type="file"]:focus-visible{
+  border-color:#78adde;
+  box-shadow:0 0 0 3px rgba(5,101,207,.08);
+  outline:none;
+}
+.a315-attachment-hint{
+  display:block;
+  margin-top:5px;
+  color:#8a989e;
+  font-size:9.5px;
+  line-height:1.35;
+}
+.a315-reply .a295-btn.primary{
+  flex:0 0 auto;
+  min-width:112px;
+  min-height:42px;
+}
+.a315-reply .a295-form-status{
+  margin-top:8px;
+}
+
+@media(max-width:720px){
+  .a295-dialog[data-ticket-dialog],
+  .account295 [data-ticket-dialog]{width:calc(100% - 18px);max-height:calc(100vh - 18px)}
+  .a295-dialog[data-ticket-dialog] .a295-dialog-head,
+  .account295 [data-ticket-dialog] .a295-dialog-head{padding:17px 16px 15px}
+  .a295-dialog[data-ticket-dialog] .a295-dialog-title h2,
+  .account295 [data-ticket-dialog] .a295-dialog-title h2{font-size:20px!important}
+  .a295-dialog[data-ticket-dialog] .a295-dialog-body,
+  .account295 [data-ticket-dialog] .a295-dialog-body{padding:15px 14px 17px}
+  .a315-ticket-summary{padding:13px 14px}
+  .a315-ticket-summary-top{align-items:flex-start;flex-direction:column;gap:7px}
+  .a315-ticket-facts{grid-template-columns:1fr;gap:10px}
+  .a315-ticket-fact,.a315-ticket-fact:first-child,.a315-ticket-fact:last-child{padding:0;border-left:0}
+  .a315-thread-message,.a315-thread-message.is-customer{max-width:100%}
+  .a315-reply{padding:13px}
+  .a315-reply-footer{align-items:stretch;flex-direction:column}
+  .a315-reply .a295-btn.primary{width:100%}
+}
+
+/* Portaled ticket dialog — beat shared .a295-dialog (920px) chrome */
+html body dialog.a295-dialog[data-ticket-dialog] {
+  width: min(720px, calc(100% - 32px));
+  max-height: min(860px, calc(100vh - 32px));
+  border-radius: 16px;
+}
+html body dialog.a295-dialog[data-ticket-dialog] .a295-dialog-title > span {
+  color: #8a959b;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+html body dialog.a295-dialog[data-ticket-dialog] .a295-dialog-title h2 {
+  font-size: 22px !important;
+  font-weight: 600 !important;
+}
+
+
+/* account support forms — form-grid + support112 (from support-v118) + v316 */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+.form-grid .field.full { grid-column: 1 / -1; }
+.form-card { box-sizing: border-box; }
+@media (max-width: 760px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .field.full { grid-column: auto; }
+}
+.support112-stage { min-width: 0; }
+.support112-form,
+.support112-success {
+  border: 1px solid #d9e3e8;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(15,45,64,.07);
+  padding: clamp(24px, 2.4vw, 30px);
+}
+.support112-form-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+.support112-form-head h2 { margin: 0; font-size: 27px; }
+.support112-form-head p { margin: 7px 0 0; color: #6a7b84; font-size: 14px; }
+.support112-form .form-grid { gap: 11px; }
+.support112-form .field label { font-weight: 600; }
+.support112-form .field-hint {
+  display: block;
+  margin-top: 7px;
+  color: #76858d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Pass 118: compact support form to balance the two-column section */
+.support112-form .field textarea {
+  min-height: 78px;
+  height: 78px;
+  padding: 11px 12px;
+}
+.support112-form .field input:not([type="file"]),
+.support112-form .field select {
+  min-height: 46px;
+}
+.support112-form .field select {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 38px;
+  color: #263a44;
+  background-color: #fff;
+  background-image: linear-gradient(45deg, transparent 50%, #60727b 50%), linear-gradient(135deg, #60727b 50%, transparent 50%);
+  background-position: calc(100% - 18px) 20px, calc(100% - 13px) 20px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.support112-form .field select:focus {
+  border-color: #78adde;
+  box-shadow: 0 0 0 3px rgba(5,101,207,.08);
+}
+.support112-form input[type="file"] {
+  min-height: 48px;
+  padding-block: 5px;
+  line-height: 40px;
+}
+.support112-form .field-hint {
+  margin-top: 5px;
+}
+
+.support112-error {
+  margin-top: 18px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: #fff3f1;
+  color: #9d2d23;
+  font-size: 14px;
+}
+.support112-form .form-footer-row { margin-top: 14px; }
+
+/* InCentral v316: reliable custom issue-category dropdown in account support modal */
+.a316-category-field{position:relative;z-index:8}
+.a316-select{position:relative;width:100%}
+.a316-select-trigger{
+  width:100%;min-height:46px;padding:0 44px 0 13px;border:1px solid #d4e0e6;border-radius:12px;
+  background:#fff;color:#263a44;font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.a316-select-trigger:hover{border-color:#b7ccd7;background:#fbfdfe}
+.a316-select-trigger:focus-visible,.a316-select.is-open .a316-select-trigger{outline:0;border-color:#78adde;box-shadow:0 0 0 3px rgba(5,101,207,.08)}
+.a316-select-trigger svg{position:absolute;right:14px;width:18px;height:18px;fill:none;stroke:#60727b;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;transition:transform .16s ease}
+.a316-select.is-open .a316-select-trigger svg{transform:rotate(180deg)}
+.a316-select-menu{
+  position:absolute;z-index:40;left:0;right:0;top:calc(100% + 7px);padding:6px;border:1px solid #d4e0e6;border-radius:14px;
+  background:#fff;box-shadow:0 18px 42px rgba(15,45,64,.16);max-height:280px;overflow:auto;
+}
+.a316-select-menu[hidden]{display:none}
+.a316-select-menu button{
+  width:100%;border:0;background:transparent;color:#263a44;font:inherit;font-size:13.5px;font-weight:500;line-height:1.35;
+  text-align:left;padding:10px 12px;border-radius:9px;cursor:pointer;display:block;
+}
+.a316-select-menu button:hover,.a316-select-menu button:focus-visible{outline:0;background:#f1f7fc;color:#075faf}
+.a316-select-menu button[aria-selected="true"]{background:#eaf4fd;color:#075faf;font-weight:700}
+.a316-select-error{margin:6px 0 0;color:#a23b47;font-size:11.5px;line-height:1.4}
+@media(max-width:640px){.a316-select-menu{max-height:240px}.a316-select-trigger{font-size:13.5px}}
+
+/* support297 new-ticket modal — override shared a295-dialog chrome */
+html body dialog.a295-dialog.support297-dialog {
+  width: min(760px, calc(100% - 32px));
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+html body dialog.a295-dialog.support297-dialog .support112-form-head h2 {
+  font-size: 27px !important;
+  font-weight: 500 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.028em !important;
+  color: #172126 !important;
+}
+html body dialog.a295-dialog.support297-dialog .support112-form-head p {
+  font-weight: 400;
+}
+html body dialog.a295-dialog.support297-dialog .support112-form .field label {
+  font-weight: 600;
+}
+html body dialog.a295-dialog.support297-dialog::backdrop {
+  background: rgba(10, 22, 30, 0.66);
+  backdrop-filter: blur(4px);
+}
+html body .support297-dialog .a295-dialog-body.support297-dialog-body {
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+}
+.support297-dialog .support112-form.support297-shared-form {
+  border: 1px solid #d9e3e8;
+  border-radius: 24px;
+  background: #fff;
+  padding: clamp(24px, 2.4vw, 30px);
+  box-shadow: 0 28px 90px rgba(7, 24, 34, 0.25);
+  max-height: calc(100vh - 34px);
+  overflow: auto;
+}
+.support297-dialog .support112-form .form-footer-row {
+  align-items: center;
+  margin-top: 14px;
+}
+.support297-dialog .support112-form .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 0;
+  width: auto;
+}
+.support297-dialog .support112-form .form-actions .btn {
+  width: auto;
+  min-height: 44px;
+  flex: 0 0 auto;
+}
+.support297-dialog .support112-form .field textarea {
+  line-height: 1.45;
+  resize: vertical;
+}
+.support297-dialog .support112-form .field input:not([type="file"]),
+.support297-dialog .support112-form .field textarea {
+  border: 1px solid #cbd6dc;
+  border-radius: 10px;
+  color: #17242b;
+  font-size: 15px;
+}
+.support297-dialog .support112-form .field input:focus,
+.support297-dialog .support112-form .field textarea:focus {
+  border-color: #0b65ce;
+  box-shadow: 0 0 0 3px rgba(11, 101, 206, 0.1);
+}
+@media (max-width: 640px) {
+  html body dialog.a295-dialog.support297-dialog {
+    width: calc(100% - 18px);
+  }
+  .support297-dialog .support112-form.support297-shared-form {
+    border-radius: 18px;
+    padding: 20px;
+  }
+}
+@media (max-width: 720px) {
+  .support297-dialog .support112-form .form-footer-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .support297-dialog .support112-form .form-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .support297-dialog .support112-form .form-actions .btn {
+    width: 100%;
+  }
+}
+
+html body .support297-dialog[open] {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+/* Center account modals — Tailwind preflight clears default dialog margin:auto */
+html body .a295-dialog[open] {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
 }
 /* v375 legacy — migrated from src/styles/v375 (remove as components go Tailwind) */
 @layer components {

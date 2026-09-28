@@ -12,6 +12,13 @@ import {
 import { useRouter } from "next/navigation";
 
 import { Container } from "@/components/common/container";
+import { AccountAddressDialog } from "@/components/account/account-address-dialog";
+import { AccountNewTicketDialog } from "@/components/account/account-new-ticket-dialog";
+import { AccountOrderDialog } from "@/components/account/account-order-dialog";
+import { AccountOrderProgress } from "@/components/account/account-order-progress";
+import { AccountProfileDialog } from "@/components/account/account-profile-dialog";
+import { AccountTicketDialog } from "@/components/account/account-ticket-dialog";
+import { useAccountToast } from "@/components/account/account-toast";
 import {
   IconAddresses,
   IconBilling,
@@ -26,12 +33,11 @@ import {
 import {
   accountPage,
   accountPanelIds,
-  accountUseMockData,
+  accountUseMockMutations,
   type AccountPanelId,
 } from "@/config/account";
 import { useAuth } from "@/hooks/use-auth";
-import { api } from "@/lib/backend";
-import { loadAccountMockBootstrap } from "@/lib/account/mock-data";
+import { loadAccountBootstrap } from "@/lib/account/load-account-bootstrap";
 import {
   formatAddressLines,
   formatDate,
@@ -41,104 +47,14 @@ import {
   isPastOrder,
   orderDeviceCount,
   orderItemSummary,
-  orderStageRank,
   statusInfo,
   ticketStatus,
 } from "@/lib/account/format";
-import type { AccountBootstrap, AccountOrder } from "@/lib/account/types";
-
-const PROGRESS_LABELS = ["Placed", "Confirmed", "Packed", "Shipped", "Delivered"];
+import type { AccountAddress, AccountBootstrap } from "@/lib/account/types";
 
 function panelFromHash(hash: string): AccountPanelId {
   const id = hash.replace(/^#/, "") as AccountPanelId;
   return accountPanelIds.includes(id) ? id : "overview";
-}
-
-function OrderProgress({ order }: { order: AccountOrder }) {
-  const current = orderStageRank(order.stage || order.status);
-  return (
-    <div className="a295-progress">
-      <div className="a295-progress-track">
-        {PROGRESS_LABELS.map((label, i) => {
-          const stepState =
-            i < current ? "is-done" : i === current ? "is-current" : "is-upcoming";
-          const marker =
-            i < current ? (
-              "✓"
-            ) : i === current ? (
-              <span className="a295-progress-dot-core" />
-            ) : (
-              ""
-            );
-          return (
-            <div
-              key={label}
-              className={`a295-progress-step ${stepState}`}
-              {...(i === current ? { "aria-current": "step" as const } : {})}
-            >
-              <span className="a295-progress-node" aria-hidden>
-                <span className="a295-progress-dot">{marker}</span>
-              </span>
-              <span className="a295-progress-label">{label}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function mapApiToBootstrap(
-  profile: Record<string, unknown> | null,
-  ordersRaw: unknown[],
-  session?: { name?: string; email?: string }
-): AccountBootstrap {
-  const contact = String(profile?.contact_name ?? session?.name ?? "");
-  const parts = contact.trim().split(/\s+/).filter(Boolean);
-  const firstName = parts[0] ?? "";
-  const lastName = parts.slice(1).join(" ");
-  const emptyAddress = {
-    id: "billing",
-    label: "Billing address",
-    attention: contact || "Not provided",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "India",
-  };
-
-  const orders: AccountOrder[] = ordersRaw.map((row) => {
-    const o = row as Record<string, unknown>;
-    return {
-      id: String(o.salesorder_id ?? o.id ?? ""),
-      number: String(o.salesorder_number ?? o.number ?? ""),
-      date: String(o.date ?? ""),
-      status: String(o.status ?? "pending"),
-      total: Number(o.total ?? 0),
-      currencyCode: o.currency_code ? String(o.currency_code) : "₹",
-      items: [],
-      shipment: null,
-    };
-  });
-
-  return {
-    profile: {
-      firstName,
-      lastName,
-      fullName: contact || session?.name || "Your account",
-      companyName: String(profile?.company_name ?? ""),
-      email: String(profile?.email ?? session?.email ?? ""),
-      phone: String(profile?.phone ?? ""),
-      gstin: profile?.gstin ? String(profile.gstin) : undefined,
-      billingAddress: emptyAddress,
-      shippingAddresses: [],
-    },
-    orders,
-    invoices: [],
-    payments: [],
-    tickets: [],
-  };
 }
 
 export function AccountPage() {
@@ -146,11 +62,18 @@ export function AccountPage() {
   const { ready, isAuthenticated, session, signOut } = useAuth();
   const { intro } = accountPage;
   const signedOut = useRef(false);
+  const { showToast, toastPortal } = useAccountToast();
 
   const [bootstrap, setBootstrap] = useState<AccountBootstrap | null>(null);
   const [activePanel, setActivePanel] = useState<AccountPanelId>("overview");
   const [orderFilter, setOrderFilter] = useState<"all" | "active" | "past">("all");
   const [orderQuery, setOrderQuery] = useState("");
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [newTicketOpen, setNewTicketOpen] = useState(false);
+  const [newTicketOrderRef, setNewTicketOrderRef] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [editAddress, setEditAddress] = useState<AccountAddress | null>(null);
 
   useEffect(() => {
     if (ready && !isAuthenticated && !signedOut.current) {
@@ -168,37 +91,10 @@ export function AccountPage() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    if (accountUseMockData) {
-      setBootstrap(loadAccountMockBootstrap());
-      return;
-    }
-
     let cancelled = false;
     (async () => {
-      try {
-        const [profileRes, ordersRes] = await Promise.all([
-          api.account.profile().catch(() => null),
-          api.account.orders().catch(() => []),
-        ]);
-        const list = Array.isArray(ordersRes)
-          ? ordersRes
-          : ((ordersRes as { salesorders?: unknown[] })?.salesorders ?? []);
-        if (!cancelled) {
-          setBootstrap(
-            mapApiToBootstrap(
-              profileRes as Record<string, unknown> | null,
-              list,
-              session ?? undefined
-            )
-          );
-        }
-      } catch {
-        if (!cancelled) {
-          setBootstrap(
-            mapApiToBootstrap(null, [], session ?? undefined)
-          );
-        }
-      }
+      const data = await loadAccountBootstrap(session ?? undefined);
+      if (!cancelled) setBootstrap(data);
     })();
 
     return () => {
@@ -218,11 +114,158 @@ export function AccountPage() {
     router.push("/");
   }, [signOut, router]);
 
+  const handleTicketReply = useCallback(async (ticketId: number, body: string) => {
+    setBootstrap((prev) => {
+      if (!prev) return prev;
+      const now = new Date().toISOString();
+      return {
+        ...prev,
+        tickets: prev.tickets.map((t) => {
+          if (t.id !== ticketId) return t;
+          return {
+            ...t,
+            status: 2,
+            statusLabel: "Open",
+            updatedAt: now,
+            conversations: [
+              ...(t.conversations ?? []),
+              {
+                id: Date.now(),
+                from: prev.profile.fullName,
+                customer: true,
+                body,
+                createdAt: now,
+              },
+            ],
+          };
+        }),
+      };
+    });
+  }, []);
+
+  const openOrder = useCallback((orderId: string) => {
+    setSelectedOrderId(orderId);
+  }, []);
+
+  const openNewTicket = useCallback((orderNumber = "") => {
+    setNewTicketOrderRef(orderNumber);
+    setNewTicketOpen(true);
+  }, []);
+
+  const handleCreateTicket = useCallback(
+    async (payload: {
+      category: string;
+      orderReference: string;
+      email: string;
+      phone: string;
+      subject: string;
+      description: string;
+    }) => {
+      let newId = 0;
+      setBootstrap((prev) => {
+        if (!prev) return prev;
+        newId = 11000 + prev.tickets.length + 1;
+        const now = new Date().toISOString();
+        const ticket = {
+          id: newId,
+          subject: payload.subject,
+          category: payload.category,
+          status: 2,
+          statusLabel: "Open",
+          createdAt: now,
+          updatedAt: now,
+          orderNumber: payload.orderReference,
+          description: payload.description,
+          conversations: [
+            {
+              id: 1,
+              from: prev.profile.fullName,
+              customer: true,
+              body: payload.description,
+              createdAt: now,
+            },
+          ],
+        };
+        return { ...prev, tickets: [ticket, ...prev.tickets] };
+      });
+      showToast(`Support request #${newId} submitted.`);
+    },
+    [showToast]
+  );
+
+  const handleSaveProfile = useCallback(
+    async (payload: {
+      firstName?: string;
+      lastName?: string;
+      companyName?: string;
+      phone?: string;
+      gstin?: string;
+    }) => {
+      setBootstrap((prev) => {
+        if (!prev) return prev;
+        const profile = {
+          ...prev.profile,
+          ...payload,
+          fullName: [payload.firstName, payload.lastName].filter(Boolean).join(" "),
+        };
+        return { ...prev, profile };
+      });
+      showToast("Account details updated.");
+    },
+    [showToast]
+  );
+
+  const handleSaveAddress = useCallback(
+    async (payload: AccountAddress) => {
+      setBootstrap((prev) => {
+        if (!prev) return prev;
+        if (payload.id === "billing") {
+          return {
+            ...prev,
+            profile: { ...prev.profile, billingAddress: payload },
+          };
+        }
+        return {
+          ...prev,
+          profile: {
+            ...prev.profile,
+            shippingAddresses: prev.profile.shippingAddresses.map((a) =>
+              a.id === payload.id ? payload : a
+            ),
+          },
+        };
+      });
+      showToast("Address updated.");
+    },
+    [showToast]
+  );
+
+  const handleInvoiceDownload = useCallback(
+    (e?: MouseEvent) => {
+      e?.preventDefault();
+      if (accountUseMockMutations) {
+        showToast(
+          "Invoice download is unavailable right now. Please try again later.",
+          "bad"
+        );
+      }
+    },
+    [showToast]
+  );
+
   const profile = bootstrap?.profile;
   const orders = bootstrap?.orders ?? [];
   const invoices = bootstrap?.invoices ?? [];
   const payments = bootstrap?.payments ?? [];
   const tickets = bootstrap?.tickets ?? [];
+  const selectedTicket =
+    selectedTicketId != null
+      ? tickets.find((t) => t.id === selectedTicketId) ?? null
+      : null;
+  const selectedOrder =
+    selectedOrderId != null
+      ? orders.find((o) => o.id === selectedOrderId) ?? null
+      : null;
 
   const firstName = profile?.firstName || "there";
   const fullName = profile?.fullName || "Your account";
@@ -261,10 +304,6 @@ export function AccountPage() {
   );
 
   const recentOrder = orders[0];
-
-  const preventMockPdf = (e: MouseEvent) => {
-    if (accountUseMockData) e.preventDefault();
-  };
 
   if (!ready || !isAuthenticated) {
     return (
@@ -478,12 +517,12 @@ export function AccountPage() {
                                 ))}
                               </div>
                             ) : null}
-                            <OrderProgress order={recentOrder} />
+                            <AccountOrderProgress order={recentOrder} />
                             <div className="a295-order-actions">
                               <button
                                 type="button"
                                 className="a295-btn primary"
-                                onClick={() => goToPanel("orders")}
+                                onClick={() => openOrder(recentOrder.id)}
                               >
                                 View order
                               </button>
@@ -491,7 +530,7 @@ export function AccountPage() {
                                 <a
                                   className="a295-btn"
                                   href="#"
-                                  onClick={preventMockPdf}
+                                  onClick={handleInvoiceDownload}
                                 >
                                   Download invoice
                                 </a>
@@ -500,7 +539,7 @@ export function AccountPage() {
                                 <button
                                   type="button"
                                   className="a295-btn"
-                                  onClick={() => goToPanel("orders")}
+                                  onClick={() => openOrder(recentOrder.id)}
                                 >
                                   Track delivery
                                 </button>
@@ -653,12 +692,16 @@ export function AccountPage() {
                                 <a
                                   className="a295-btn ghost"
                                   href="#"
-                                  onClick={preventMockPdf}
+                                  onClick={handleInvoiceDownload}
                                 >
                                   Download invoice
                                 </a>
                               ) : null}
-                              <button type="button" className="a295-btn">
+                              <button
+                                type="button"
+                                className="a295-btn"
+                                onClick={() => openOrder(o.id)}
+                              >
                                 Order details
                               </button>
                             </div>
@@ -729,7 +772,7 @@ export function AccountPage() {
                                   <td>{formatMoney(inv.total)}</td>
                                   <td>{formatMoney(inv.balance)}</td>
                                   <td>
-                                    <a href="#" onClick={preventMockPdf}>
+                                    <a href="#" onClick={handleInvoiceDownload}>
                                       PDF
                                     </a>
                                   </td>
@@ -796,7 +839,9 @@ export function AccountPage() {
                     <article className="a295-address-card">
                       <div className="a295-address-card-head">
                         <span>Account &amp; company</span>
-                        <button type="button">Edit</button>
+                        <button type="button" onClick={() => setProfileOpen(true)}>
+                          Edit
+                        </button>
                       </div>
                       <strong>{fullName}</strong>
                       <div className="a295-profile-lines">
@@ -824,7 +869,12 @@ export function AccountPage() {
                           <span>
                             {profile.billingAddress.label || "Billing address"}
                           </span>
-                          <button type="button">Edit</button>
+                          <button
+                            type="button"
+                            onClick={() => setEditAddress(profile.billingAddress)}
+                          >
+                            Edit
+                          </button>
                         </div>
                         <strong>
                           {profile.billingAddress.attention || fullName}
@@ -836,7 +886,9 @@ export function AccountPage() {
                       <article key={a.id} className="a295-address-card">
                         <div className="a295-address-card-head">
                           <span>{a.label || "Saved address"}</span>
-                          <button type="button">Edit</button>
+                          <button type="button" onClick={() => setEditAddress(a)}>
+                            Edit
+                          </button>
                         </div>
                         <strong>{a.attention || fullName}</strong>
                         <address>{formatAddressLines(a)}</address>
@@ -858,9 +910,13 @@ export function AccountPage() {
                         one thread.
                       </p>
                     </div>
-                    <Link className="a295-btn primary" href="/support">
+                    <button
+                      type="button"
+                      className="a295-btn primary"
+                      onClick={() => openNewTicket()}
+                    >
                       New support request
-                    </Link>
+                    </button>
                   </div>
                   <div className="a295-support-layout">
                     <div className="a295-ticket-list">
@@ -871,9 +927,13 @@ export function AccountPage() {
                             When you contact support, your requests and replies will
                             appear here.
                           </p>
-                          <Link className="a295-btn primary" href="/support">
+                          <button
+                            type="button"
+                            className="a295-btn primary"
+                            onClick={() => openNewTicket()}
+                          >
                             New support request
-                          </Link>
+                          </button>
                         </div>
                       ) : (
                         tickets.map((t) => {
@@ -883,6 +943,7 @@ export function AccountPage() {
                               key={t.id}
                               type="button"
                               className="a295-ticket"
+                              onClick={() => setSelectedTicketId(t.id)}
                             >
                               <span>
                                 <h3>{t.subject}</h3>
@@ -929,6 +990,47 @@ export function AccountPage() {
           )}
         </Container>
       </section>
+
+      <AccountOrderDialog
+        order={selectedOrder}
+        open={selectedOrderId !== null && selectedOrder !== null}
+        onClose={() => setSelectedOrderId(null)}
+        onGetSupport={(orderNumber) => {
+          goToPanel("support");
+          openNewTicket(orderNumber);
+        }}
+        onInvoiceDownload={() => handleInvoiceDownload()}
+      />
+      <AccountTicketDialog
+        ticket={selectedTicket}
+        customerName={fullName}
+        open={selectedTicketId !== null && selectedTicket !== null}
+        onClose={() => setSelectedTicketId(null)}
+        onReply={accountUseMockMutations ? handleTicketReply : undefined}
+      />
+      <AccountNewTicketDialog
+        open={newTicketOpen}
+        onClose={() => setNewTicketOpen(false)}
+        profile={{
+          email: profile?.email ?? session?.email ?? "",
+          phone: profile?.phone ?? "",
+        }}
+        orderReference={newTicketOrderRef}
+        onSubmit={accountUseMockMutations ? handleCreateTicket : async () => {}}
+      />
+      <AccountProfileDialog
+        open={profileOpen}
+        profile={profile ?? null}
+        onClose={() => setProfileOpen(false)}
+        onSave={accountUseMockMutations ? handleSaveProfile : async () => {}}
+      />
+      <AccountAddressDialog
+        open={editAddress !== null}
+        address={editAddress}
+        onClose={() => setEditAddress(null)}
+        onSave={accountUseMockMutations ? handleSaveAddress : async () => {}}
+      />
+      {toastPortal}
     </main>
   );
 }

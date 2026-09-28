@@ -1,5 +1,8 @@
-/** When true, My InCentral uses src/lib/account/mock-data.ts instead of live APIs. */
-export const accountUseMockData = true;
+/** When true, skip API reads and use mock-data.ts only (local demo). */
+export const accountUseMockData = false;
+
+/** When true, support/profile saves and invoice PDF placeholders use in-memory mock handlers. */
+export const accountUseMockMutations = true;
 
 export const accountPage = {
   metadata: {

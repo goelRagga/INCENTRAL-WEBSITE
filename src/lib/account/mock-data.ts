@@ -3,7 +3,17 @@
  * Replace with live API wiring when account endpoints are ready.
  */
 
-import type { AccountBootstrap } from "@/lib/account/types";
+import type { AccountAddress, AccountBootstrap } from "@/lib/account/types";
+
+const orderAddress: AccountAddress = {
+  id: "shipping-1",
+  attention: "Naina Sharma",
+  address: "Viman Nagar",
+  city: "Pune",
+  state: "Maharashtra",
+  zip: "411014",
+  country: "India",
+};
 
 export const accountMockBootstrap: AccountBootstrap = {
   profile: {
@@ -48,6 +58,16 @@ export const accountMockBootstrap: AccountBootstrap = {
       status: "shipped",
       stage: "shipped",
       total: 131994.8,
+      subtotal: 108560,
+      shipping: 300,
+      installation: 3000,
+      gst: 20134.8,
+      discount: 0,
+      paymentStatus: "paid",
+      paymentMode: "Razorpay",
+      installationMethod: "Installed by Intangles",
+      shippingAddress: orderAddress,
+      billingAddress: orderAddress,
       items: [
         {
           name: "InGenious",
@@ -84,6 +104,16 @@ export const accountMockBootstrap: AccountBootstrap = {
       status: "delivered",
       stage: "delivered",
       total: 26219.6,
+      subtotal: 21120,
+      shipping: 100,
+      installation: 1000,
+      gst: 3999.6,
+      discount: 0,
+      paymentStatus: "paid",
+      paymentMode: "Razorpay",
+      installationMethod: "Installed by Intangles",
+      shippingAddress: orderAddress,
+      billingAddress: orderAddress,
       items: [
         {
           name: "InSight",
@@ -113,6 +143,16 @@ export const accountMockBootstrap: AccountBootstrap = {
       status: "confirmed",
       stage: "confirmed",
       total: 8484.2,
+      subtotal: 7140,
+      shipping: 50,
+      installation: 0,
+      gst: 1294.2,
+      discount: 0,
+      paymentStatus: "paid",
+      paymentMode: "Razorpay",
+      installationMethod: "Self-install",
+      shippingAddress: orderAddress,
+      billingAddress: orderAddress,
       items: [
         {
           name: "InCert",
@@ -189,6 +229,22 @@ export const accountMockBootstrap: AccountBootstrap = {
       orderNumber: "SO-10284",
       description:
         "Please confirm the installation schedule for the five InGenious devices.",
+      conversations: [
+        {
+          id: 1,
+          from: "Naina Sharma",
+          customer: true,
+          body: "Please confirm the installation schedule for the five InGenious devices.",
+          createdAt: "2026-09-13T10:15:00+05:30",
+        },
+        {
+          id: 2,
+          from: "Intangles Support",
+          customer: false,
+          body: "We have received the request and are coordinating the installation slot with the local team.",
+          createdAt: "2026-09-15T12:40:00+05:30",
+        },
+      ],
     },
     {
       id: 10372,
@@ -200,6 +256,22 @@ export const accountMockBootstrap: AccountBootstrap = {
       updatedAt: "2026-09-04T14:05:00+05:30",
       orderNumber: "SO-10192",
       description: "Please share the GST invoice for our records.",
+      conversations: [
+        {
+          id: 1,
+          from: "Naina Sharma",
+          customer: true,
+          body: "Please share the GST invoice for our records.",
+          createdAt: "2026-09-04T09:20:00+05:30",
+        },
+        {
+          id: 2,
+          from: "Intangles Support",
+          customer: false,
+          body: "The invoice is available in the Billing section of My InCentral.",
+          createdAt: "2026-09-04T14:05:00+05:30",
+        },
+      ],
     },
   ],
 };

@@ -52,8 +52,18 @@ export type AccountOrder = {
   stage?: string;
   total: number;
   currencyCode?: string;
+  subtotal?: number;
+  shipping?: number;
+  installation?: number;
+  gst?: number;
+  discount?: number;
+  paymentStatus?: string;
+  paymentMode?: string;
+  installationMethod?: string;
   items: AccountOrderItem[];
   shipment?: AccountShipment | null;
+  shippingAddress?: AccountAddress;
+  billingAddress?: AccountAddress;
   invoiceId?: string;
   invoiceNumber?: string;
   canCancel?: boolean;
@@ -79,6 +89,14 @@ export type AccountPayment = {
   invoiceNumber?: string;
 };
 
+export type AccountTicketConversation = {
+  id: number;
+  from: string;
+  customer: boolean;
+  body: string;
+  createdAt: string;
+};
+
 export type AccountTicket = {
   id: number;
   subject: string;
@@ -89,6 +107,7 @@ export type AccountTicket = {
   updatedAt: string;
   orderNumber?: string;
   description?: string;
+  conversations?: AccountTicketConversation[];
 };
 
 export type AccountBootstrap = {
