@@ -20,7 +20,7 @@ Living checklist against the static portal. **Source of truth:** v375 HTML + `as
 | Hero | `h132-hero`, copy + CTAs | `hero-section.tsx` + `globals.css` | **Aligned (this pass)** |
 | Intelligence panel | `h140-intelligence-panel` | `intelligence-panel.tsx` | **Aligned (this pass)** |
 | Solutions grid | `h139-plans`, `h139-card` | `plans-section` + `globals.css` | **Aligned** |
-| Solution finder | `h144-checker`, `h144-*` | `plan-finder-section` | Copy aligned; **full h144 CSS pending** |
+| Solution finder | `h144-checker`, `h144-*` | `plan-finder-section` | **Functional parity**; styling via Tailwind (no separate h144 CSS file) |
 | Proof band | `h149-proof` | `proof-section.tsx` | **Aligned (this pass)** |
 | Testimonials | `home-testimonials` JS block | — | **Not ported** |
 
@@ -40,14 +40,14 @@ Living checklist against the static portal. **Source of truth:** v375 HTML + `as
 | `sign-in.html` | `/sign-in` | Review |
 | `cart.html` | `/cart` | Review |
 | `checkout.html` | `/checkout` | Review |
-| `get-a-quote.html` | `/get-a-quote` | Review |
-| `order-confirmation.html` | — | **Missing route** |
+| `get-a-quote.html` | `/get-a-quote` | **Aligned** (quote-v357 flow, Tailwind + globals form-grid) |
+| `order-confirmation.html` | `/order-confirmation` | **Aligned** (checkout-headless v253 confirmation UI) |
 | `my-incentral.html` | `/account` | Review |
 | `privacy-notice.html` | `/policies/privacy-notice` | Review |
 | `terms-conditions.html` | `/policies/terms-conditions` | Review |
 | `returns-refunds-cancellation.html` | `/policies/returns-refunds-cancellation` | Review |
 | `404.html` | `not-found.tsx` | Review |
-| `region-unavailable.html` | — | **Missing route** |
+| `region-unavailable.html` | `/region-unavailable` | **Aligned** (geo layout, Tailwind + `body.geo-page` chrome hide) |
 
 ## Assets
 
@@ -67,7 +67,7 @@ Living checklist against the static portal. **Source of truth:** v375 HTML + `as
 ## Suggested next passes
 
 1. Port `h144-checker` / plan-finder shell CSS from `homepage-v333.css` + `compatibility-checker-v338.css`.
-2. Add `/order-confirmation` and `/region-unavailable`.
+2. ~~Add `/order-confirmation` and `/region-unavailable`.~~ Done.
 3. PDP pages (`incert`, etc.): diff against v375 product templates section-by-section.
 4. Homepage testimonials carousel from v375 inline script → React component.
 5. Copy remaining `assets/images/*` used on PDPs and marketing pages.
