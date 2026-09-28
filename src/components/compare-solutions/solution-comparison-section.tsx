@@ -7,7 +7,10 @@ import { useCallback, useMemo, useState } from "react";
 import { Container } from "@/components/common/container";
 import { PlanPdpContainer } from "@/components/plan-pdp/plan-pdp-container";
 import { ComparisonMark } from "@/components/compare-solutions/comparison-mark";
-import { FeatureGroupIcon } from "@/components/compare-solutions/comparison-icons";
+import {
+  FeatureGroupIcon,
+  FeatureRowIcon,
+} from "@/components/compare-solutions/comparison-icons";
 import {
   comparisonPlanLabels,
   comparisonPlanOrder,
@@ -220,7 +223,9 @@ function FeatureGroupDialog({
                     <tr key={feature.name}>
                       <th scope="row">
                         <span className="pcmp-feature">
-                          <span className="pcmp-feature-icon" aria-hidden="true" />
+                          <span className="pcmp-feature-icon" aria-hidden="true">
+                            <FeatureRowIcon icon={feature.icon} />
+                          </span>
                           <span className="pcmp-feature-name">{feature.name}</span>
                         </span>
                       </th>

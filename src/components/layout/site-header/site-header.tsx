@@ -15,6 +15,7 @@ import { getHeaderAccountLink } from "@/lib/auth/nav-links";
 import { isNavLinkActive } from "@/lib/navigation-utils";
 import { cn } from "@/lib/utils";
 
+import { HeaderAccountMenu } from "./account-menu";
 import { MobileNavigation } from "./mobile-navigation";
 import { PlansMegaMenu } from "./plans-mega-menu";
 
@@ -103,8 +104,8 @@ export function SiteHeader() {
       <div
         className={cn(
           "mx-auto h-full w-[calc(100%-24px)] max-[390px]:w-[calc(100%-16px)]",
-          "min-[761px]:max-[1100px]:w-[min(calc(100%-64px),1320px)]",
-          "min-[1101px]:w-[min(calc(100%-96px),1320px)]",
+          "min-[761px]:max-[1100px]:w-[min(calc(100%-var(--gutter-tablet)),var(--max-width-content))]",
+          "min-[1101px]:w-[min(calc(100%-var(--gutter-desktop)),var(--max-width-content))]",
           "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 max-[390px]:gap-1 min-[1100px]:grid-cols-[auto_minmax(0,1fr)_auto] min-[1100px]:gap-[26px]"
         )}
       >
@@ -191,14 +192,18 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex min-w-max items-center justify-end gap-[5px] max-[390px]:gap-0.5 min-[1100px]:gap-[7px]">
-          <Link
-            href={accountLink.href}
-            aria-label={accountLink.ariaLabel}
-            data-inc-account-link=""
-            className="inc-account-link hidden min-h-11 items-center justify-center rounded-full border border-inc-blue bg-inc-blue px-[18px] text-[15px] leading-none font-semibold whitespace-nowrap text-white no-underline transition-[background,border-color,box-shadow,transform] duration-200 hover:border-inc-blue-hover hover:bg-inc-blue-hover hover:shadow-[0_8px_22px_rgba(5,101,207,0.16)] min-[1100px]:inline-flex motion-safe:hover:-translate-y-px"
-          >
-            {accountLink.label}
-          </Link>
+          {isAuthenticated ? (
+            <HeaderAccountMenu />
+          ) : (
+            <Link
+              href={accountLink.href}
+              aria-label={accountLink.ariaLabel}
+              data-inc-account-link=""
+              className="inc-header-cta inc-account-link hidden min-h-11 items-center justify-center rounded-full border border-inc-blue bg-inc-blue px-[18px] text-[15px] leading-none font-semibold whitespace-nowrap text-white no-underline transition-[background,border-color,box-shadow,transform] duration-200 hover:border-inc-blue-hover hover:bg-inc-blue-hover hover:shadow-[0_8px_22px_rgba(5,101,207,0.16)] min-[1100px]:inline-flex motion-safe:hover:-translate-y-px"
+            >
+              {accountLink.label}
+            </Link>
+          )}
 
           <Link
             href={headerActions.cart.href}

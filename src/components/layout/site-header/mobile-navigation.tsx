@@ -12,7 +12,9 @@ import {
 } from "@/config/plans";
 import { siteConfig } from "@/config/site";
 import { useAuth } from "@/hooks/use-auth";
+import { MobileAccountMenu } from "@/components/layout/site-header/account-menu";
 import { getHeaderAccountLink } from "@/lib/auth/nav-links";
+import { authPage } from "@/config/auth";
 import { isNavLinkActive } from "@/lib/navigation-utils";
 import { cn } from "@/lib/utils";
 
@@ -131,15 +133,21 @@ export function MobileNavigation({
           })}
         </ul>
 
-        <Link
-          href={accountLink.href}
-          aria-label={accountLink.ariaLabel}
-          data-inc-mobile-account=""
-          onClick={onNavigate}
-          className="inc-mobile-cta mt-auto flex min-h-[50px] w-full items-center justify-center rounded-full border border-inc-blue bg-inc-blue px-[18px] text-[15px] font-semibold text-white no-underline"
-        >
-          {accountLink.label}
-        </Link>
+        {isAuthenticated ? (
+          <div className="mt-auto">
+            <MobileAccountMenu onNavigate={onNavigate} />
+          </div>
+        ) : (
+          <Link
+            href={authPage.signInHref}
+            aria-label={accountLink.ariaLabel}
+            data-inc-mobile-account=""
+            onClick={onNavigate}
+            className="inc-mobile-cta mt-auto flex min-h-[50px] w-full items-center justify-center rounded-full border border-inc-blue bg-inc-blue px-[18px] text-[15px] font-semibold text-white no-underline"
+          >
+            {accountLink.label}
+          </Link>
+        )}
         <Link
           href={`tel:${siteConfig.phone.raw}`}
           onClick={onNavigate}

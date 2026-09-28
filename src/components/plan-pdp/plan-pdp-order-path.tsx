@@ -15,7 +15,7 @@ export function PlanPdpOrderPath({ order }: PlanPdpOrderPathProps) {
   return (
     <section
       aria-label="What happens after you order"
-      className="bg-white pb-[62px] max-[700px]:pb-11"
+      className="pdp-order-path"
     >
       <PlanPdpContainer>
         <div className="grid gap-[42px] rounded-[18px] border border-[#dce4e9] bg-[#f8fafb] p-[28px_30px] min-[901px]:grid-cols-[minmax(210px,0.62fr)_minmax(0,1.38fr)] max-[900px]:grid-cols-1 max-[900px]:gap-[22px] max-[700px]:px-5 max-[700px]:py-[23px]">

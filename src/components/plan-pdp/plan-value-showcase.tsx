@@ -10,7 +10,7 @@ type PlanValueShowcaseProps = {
 
 export function PlanValueShowcase({ content }: PlanValueShowcaseProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#f7fbff] via-white via-44% to-[#f8fbfd] py-[72px] max-[760px]:py-12">
+    <section className="pdp-value-showcase relative overflow-hidden">
       <PlanPdpContainer>
         <div className="relative overflow-hidden rounded-[28px] border border-[#d6e3eb] bg-white/95 p-[34px] shadow-[0_22px_54px_rgba(20,43,61,0.07)] max-[760px]:rounded-[22px] max-[760px]:p-[22px]">
           <div className="relative z-[1] grid items-start gap-[30px] min-[981px]:grid-cols-[minmax(0,1.18fr)_minmax(300px,0.82fr)] max-[980px]:grid-cols-1">

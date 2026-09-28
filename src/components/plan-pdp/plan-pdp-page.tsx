@@ -51,7 +51,6 @@ export function PlanPdpPage({ planId, line = "ais" }: PlanPdpPageProps) {
         summary={variant.summary}
         heroImage={planPdpHeroImage(planId)}
         finderHref={finderHref}
-        hasLineToggle={product.variants.length > 1}
       />
 
       <PlanValueShowcase content={variant.value} />
