@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* v375 portal parity — Solutions mega menu, compare page, feature comparison */
+@import "../styles/v375/section-rhythm-v359.css";
+@import "../styles/v375/navigation-master-v335.css";
+@import "../styles/v375/mega-nav-density-v358.css";
+@import "../styles/v375/compare-page.css";
+@import "../styles/v375/compare-hero-v366.css";
+@import "../styles/v375/pdp-feature-comparison-v287.css";
+
 /* Design tokens, base styles, and v375 @layer component classes (single CSS entry) */
 
 :root {
@@ -796,12 +804,16 @@ main .h149-proof-note {
 
 /* @layer components — section-head-h139 (co-located styles consolidated) */
 @layer components {
-main .h139-head {
+  main .h139-head {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 38px;
     margin-bottom: 22px;
+  }
+
+  main .h139-head .eyebrow {
+    margin-bottom: 8px;
   }
 
   main .h139-head h2 {
@@ -848,6 +860,8 @@ main .h139-head {
 @layer components {
 main .h139-plans {
   padding: 48px 0 52px;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e3e9ec;
   scroll-margin-top: 90px;
 }
 
@@ -859,8 +873,8 @@ main .h139-grid {
 
 main a.h139-card,
 main .h139-card {
-  --accent: var(--plan-incert);
-  --soft: var(--plan-incert-wash);
+  --accent: #1d71c8;
+  --soft: #eef6ff;
   position: relative;
   display: flex;
   min-width: 0;
@@ -885,19 +899,24 @@ main .h139-card:hover {
   box-shadow: 0 22px 46px rgba(25, 51, 66, 0.105);
 }
 
+main .h139-incert {
+  --accent: #1d71c8;
+  --soft: #eef6ff;
+}
+
 main .h139-insight {
-  --accent: var(--plan-insight);
-  --soft: var(--plan-insight-wash);
+  --accent: #2b86db;
+  --soft: #eef6fd;
 }
 
 main .h139-ingenious {
-  --accent: var(--plan-ingenious);
-  --soft: var(--plan-ingenious-wash);
+  --accent: #4c75e0;
+  --soft: #f1f4fe;
 }
 
 main .h139-invision {
-  --accent: var(--plan-invisionplus);
-  --soft: var(--plan-invisionplus-wash);
+  --accent: #6a8fe8;
+  --soft: #f3f6ff;
 }
 
 main .h139-media {
@@ -1168,25 +1187,77 @@ main .h139-features li[data-icon="cabin"] > span::before {
   }
 }
 
-/* typography.css — plan names slightly larger on desktop when loaded after pass 139 */
-@media (min-width: 761px) {
-  main .h139-title h3 {
-    font-size: 27px;
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-  }
 }
 
-@media (max-width: 760px) {
-  main .h139-title h3 {
-    font-size: 24px;
+/* v375 portal buttons (compare page, pcmp modal) */
+@layer components {
+  a.btn,
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
   }
 
-  main .h139-value {
-    font-size: 8.5px;
-    letter-spacing: 0.055em;
+  a.btn.primary,
+  .btn.primary {
+    border-color: #0565cf;
+    background: #0565cf;
+    color: #fff;
   }
-}
+
+  a.btn.primary:hover,
+  .btn.primary:hover {
+    background: #075ab8;
+    border-color: #075ab8;
+    color: #fff;
+  }
+
+  a.btn.secondary,
+  .btn.secondary {
+    border-color: #c9d5dc;
+    background: #fff;
+    color: #15242d;
+  }
+
+  a.btn.secondary:hover,
+  .btn.secondary:hover {
+    background: #f6f7f7;
+  }
+
+  .pcmp-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(8, 20, 31, 0.62);
+    backdrop-filter: blur(5px);
+  }
+
+  [data-slot="dialog-popup"].pcmp-dialog,
+  .pcmp-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1201;
+    max-height: min(820px, calc(100vh - 34px));
+    width: min(1120px, calc(100vw - 34px));
+    padding: 0;
+    border: 0;
+    border-radius: 20px;
+    background: #fff;
+    color: #17212b;
+    box-shadow: 0 30px 90px rgba(9, 24, 37, 0.26);
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+  }
 }
 
 /* @layer components — policy (co-located styles consolidated) */

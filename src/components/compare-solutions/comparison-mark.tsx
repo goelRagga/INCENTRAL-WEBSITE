@@ -8,17 +8,17 @@ const markConfig: Record<
   yes: {
     symbol: "✓",
     label: "All features included",
-    className: "border-[#d9ece3] bg-[#edf7f2] text-[#176b50]",
+    className: "pcmp-mark yes",
   },
   no: {
     symbol: "×",
     label: "Not included",
-    className: "border-[#f0dde0] bg-[#fff4f5] text-[#ae4350]",
+    className: "pcmp-mark no",
   },
   partial: {
     symbol: "−",
     label: "Some features included",
-    className: "border-[#f0ddb2] bg-[#fff7e8] text-[#a66b00] text-lg",
+    className: "pcmp-mark partial",
   },
 };
 
@@ -35,11 +35,7 @@ export function ComparisonMark({
 
   return (
     <span
-      className={cn(
-        "mx-auto inline-flex size-7 items-center justify-center rounded-full border font-[Arial,sans-serif] text-[15px] leading-none font-bold",
-        config.className,
-        className
-      )}
+      className={cn(config.className, className)}
       aria-label={config.label}
       title={config.label}
     >

@@ -7,7 +7,7 @@ export type PlanAccent = "incert" | "insight" | "ingenious" | "invisionplus";
 
 /** v375 h139-card family class on homepage solution cards */
 export const planShowcaseCardClass: Record<PlanAccent, string> = {
-  incert: "",
+  incert: "h139-incert",
   insight: "h139-insight",
   ingenious: "h139-ingenious",
   invisionplus: "h139-invision",
