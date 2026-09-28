@@ -13,7 +13,7 @@ export function PlanPdpMediaSection({ media }: PlanPdpMediaSectionProps) {
   const isDriveAi = hardware.eyebrow.toLowerCase().includes("drive");
 
   return (
-    <section className="border-0 bg-[#f7f9fb] py-[46px] max-[620px]:py-9">
+    <section className="pdp-media-section">
       <PlanPdpContainer>
         <div className="grid items-stretch gap-[22px] min-[901px]:grid-cols-[minmax(0,1.68fr)_minmax(300px,1fr)] max-[900px]:grid-cols-1">
           <article className="flex min-w-0 flex-col overflow-hidden rounded-[22px] border border-[#dbe5eb] bg-white shadow-[0_12px_32px_rgba(24,49,67,0.055)]">

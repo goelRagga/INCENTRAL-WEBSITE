@@ -20,7 +20,7 @@ export function PlanPdpContainer<T extends ElementType = "div">({
     <Component
       className={cn(
         "mx-auto max-w-none px-0",
-        "w-[min(calc(100%-40px),1260px)] min-[761px]:w-[min(calc(100%-80px),1260px)] min-[1101px]:w-[min(calc(100%-144px),1260px)]",
+        "w-[calc(100%-var(--gutter-mobile))] min-[761px]:w-[min(calc(100%-var(--gutter-tablet)),var(--max-width-content))] min-[1101px]:w-[min(calc(100%-var(--gutter-desktop)),var(--max-width-content))]",
         className
       )}
     >

@@ -9,7 +9,7 @@ type PlanPdpTechSectionProps = {
 
 export function PlanPdpTechSection({ tech }: PlanPdpTechSectionProps) {
   return (
-    <section className="border-t border-[#e3e8ec] bg-[#f8fafb] py-[54px] pb-[58px] max-[620px]:py-10 max-[620px]:pb-11">
+    <section className="pdp-tech-section">
       <PlanPdpContainer>
         <div className="mb-[22px] grid items-end gap-3 min-[1051px]:grid-cols-[minmax(0,0.78fr)_minmax(320px,0.72fr)] min-[1051px]:gap-12">
           <div>

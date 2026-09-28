@@ -1,8 +1,5 @@
 import type { NextConfig } from "next";
 
-import { policySlugs } from "./src/config/policies";
-import { planRouteIds } from "./src/config/plans";
-
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
@@ -11,60 +8,11 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
     return [
       {
-        source: '/api/:path*',
+        source: "/api/:path*",
         destination: `${backendUrl}/api/:path*`,
-      },
-    ];
-  },
-  async redirects() {
-    return [
-      ...planRouteIds.map((planId) => ({
-        source: `/${planId}`,
-        destination: `/solutions/${planId}`,
-        permanent: true,
-      })),
-      {
-        source: "/plans",
-        destination: "/solutions",
-        permanent: true,
-      },
-      {
-        source: "/plans/:planId*",
-        destination: "/solutions/:planId*",
-        permanent: true,
-      },
-      ...policySlugs.map((slug) => ({
-        source: `/${slug}`,
-        destination: `/policies/${slug}`,
-        permanent: true,
-      })),
-      {
-        source: "/my-incentral",
-        destination: "/account",
-        permanent: true,
-      },
-      {
-        source: "/plans/invision",
-        destination: "/solutions/invision-plus?line=standard",
-        permanent: true,
-      },
-      {
-        source: "/invision",
-        destination: "/solutions/invision-plus?line=standard",
-        permanent: true,
-      },
-      {
-        source: "/compare-solutions.html",
-        destination: "/compare-solutions",
-        permanent: true,
-      },
-      {
-        source: "/cart.html",
-        destination: "/cart",
-        permanent: true,
       },
     ];
   },

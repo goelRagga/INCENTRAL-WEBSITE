@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import { cn } from "@/lib/utils";
-
 import { PlanPdpContainer } from "./plan-pdp-container";
 
 type PlanPdpHeroProps = {
@@ -11,7 +9,6 @@ type PlanPdpHeroProps = {
   summary: string;
   heroImage: string;
   finderHref: string;
-  hasLineToggle?: boolean;
 };
 
 export function PlanPdpHero({
@@ -21,15 +18,9 @@ export function PlanPdpHero({
   summary,
   heroImage,
   finderHref,
-  hasLineToggle = false,
 }: PlanPdpHeroProps) {
   return (
-    <section
-      className={cn(
-        "border-b border-[#e2e2dc] bg-inc-warm pb-12 max-[760px]:pb-[38px] max-[760px]:pt-[34px]",
-        hasLineToggle ? "pt-4 max-[680px]:pt-3" : "pt-[46px] max-[760px]:pt-[34px]"
-      )}
-    >
+    <section className="pdp-hero border-b border-[#e2e2dc] bg-inc-warm">
       <PlanPdpContainer>
         <div className="grid items-center gap-7 min-[1101px]:grid-cols-[minmax(0,0.88fr)_minmax(460px,1.12fr)] min-[1101px]:gap-[42px] max-[1100px]:grid-cols-1 max-[1100px]:gap-7">
           <div>

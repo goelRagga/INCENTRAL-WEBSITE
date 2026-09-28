@@ -13,13 +13,22 @@ export function parseAuthSearchParams(
   const mode: AuthTab =
     modeParam === "create" || modeParam === "signup" ? "create" : "signin";
 
+  const next = pickParam(searchParams.next);
+
   return {
     mode,
-    next: pickParam(searchParams.next),
+    next,
     checkout:
       pickParam(searchParams.checkout) === "1" ||
-      pickParam(searchParams.next) === "checkout",
+      pickParam(searchParams.cart) === "1" ||
+      isCheckoutNext(next),
   };
+}
+
+function isCheckoutNext(next: string | null) {
+  if (!next) return false;
+  const path = next.startsWith("/") ? next.split("?")[0] : `/${next.split("?")[0]}`;
+  return path === "/checkout";
 }
 
 function pickParam(value: string | string[] | undefined) {

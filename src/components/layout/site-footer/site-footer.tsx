@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState, type MouseEvent } from "react";
 
 import { Container } from "@/components/common/container";
 import {
@@ -21,36 +22,60 @@ import {
 } from "@/config/footer";
 import { siteConfig } from "@/config/site";
 import { useAuth } from "@/hooks/use-auth";
-import { getHeaderAccountLink, getOrdersLink } from "@/lib/auth/nav-links";
+import { navigateAccountPanelHref } from "@/lib/account/account-panel-nav";
+import {
+  getFooterDashboardLink,
+  getOrdersLink,
+  getSupportNavHref,
+} from "@/lib/auth/nav-links";
 import { cn } from "@/lib/utils";
 
 export function SiteFooter() {
+  const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const accountLink = getHeaderAccountLink(isAuthenticated);
+  const dashboardLink = getFooterDashboardLink(isAuthenticated);
+
+  const onAccountPanelLinkClick = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+      if (!href.startsWith("/account#")) return;
+      event.preventDefault();
+      if (navigateAccountPanelHref(href) === "handled") return;
+      void router.push(href);
+    },
+    [router]
+  );
   const resolvedFooterNavGroups = footerNavGroups.map((group) => {
-    if (group.id !== "account") return group;
+    if (group.id === "account") {
+      return {
+        ...group,
+        links: group.links.map((link) => {
+          if (link.id === "dashboard") {
+            return {
+              ...link,
+              label: dashboardLink.label,
+              href: dashboardLink.href,
+            };
+          }
+          if (link.id === "orders") {
+            return { ...link, href: getOrdersLink(isAuthenticated) };
+          }
+          return link;
+        }),
+      };
+    }
 
-    return {
-      ...group,
-      links: group.links.map((link) => {
-        if (link.label === "Sign In") {
-          return {
-            ...link,
-            label: accountLink.label,
-            href: accountLink.href,
-          };
-        }
+    if (group.id === "help") {
+      return {
+        ...group,
+        links: group.links.map((link) =>
+          link.id === "support"
+            ? { ...link, href: getSupportNavHref(isAuthenticated) }
+            : link
+        ),
+      };
+    }
 
-        if (link.label === "Orders") {
-          return {
-            ...link,
-            href: getOrdersLink(isAuthenticated),
-          };
-        }
-
-        return link;
-      }),
-    };
+    return group;
   });
 
   const socialIconMap = {
@@ -139,18 +164,16 @@ export function SiteFooter() {
               </h2>
               <ul className="m-0 grid list-none gap-1 p-0">
                 {group.links.map((link) => (
-                  <li key={`${group.id}-${link.label}`} className="m-0 p-0">
+                  <li key={`${group.id}-${link.id}`} className="m-0 p-0">
                     <Link
                       href={link.href}
                       data-incf-account={
-                        link.label === "Sign In" ||
-                        link.label === "My InCentral"
-                          ? ""
-                          : undefined
+                        link.id === "dashboard" ? "" : undefined
                       }
                       data-incf-orders={
-                        link.label === "Orders" ? "" : undefined
+                        link.id === "orders" ? "" : undefined
                       }
+                      onClick={(e) => onAccountPanelLinkClick(e, link.href)}
                       className="inline-flex min-h-[23px] items-center text-[13.5px] leading-[1.35] font-normal text-inc-footer-link no-underline hover:text-white hover:underline"
                     >
                       {link.label}
@@ -173,9 +196,16 @@ export function SiteFooter() {
               </summary>
               <ul className="m-0 grid list-none gap-px pb-[9px] p-0">
                 {group.links.map((link) => (
-                  <li key={`${group.id}-${link.label}`} className="m-0 p-0">
+                  <li key={`${group.id}-${link.id}`} className="m-0 p-0">
                     <Link
                       href={link.href}
+                      data-incf-account={
+                        link.id === "dashboard" ? "" : undefined
+                      }
+                      data-incf-orders={
+                        link.id === "orders" ? "" : undefined
+                      }
+                      onClick={(e) => onAccountPanelLinkClick(e, link.href)}
                       className="inline-flex min-h-9 w-full items-center text-[13px] text-inc-footer-link no-underline hover:text-white hover:underline"
                     >
                       {link.label}

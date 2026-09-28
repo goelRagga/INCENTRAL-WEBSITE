@@ -25,7 +25,7 @@ export function PlanLineToggle({ product }: PlanLineToggleProps) {
   return (
     <section
       aria-label="Choose product version"
-      className="bg-inc-warm pt-2 max-[680px]:pt-2"
+      className="pdp-line-switch-wrap bg-inc-warm"
     >
       <PlanPdpContainer>
         <div className="flex items-center justify-start gap-4 max-[680px]:flex-col max-[680px]:items-start max-[680px]:gap-2.5">

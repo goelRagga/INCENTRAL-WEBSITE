@@ -1,27 +1,24 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  Activity,
-  BarChart3,
-  FileText,
-  Fuel,
-  LayoutGrid,
-  TriangleAlert,
-  UserRound,
-  Video,
-} from "lucide-react";
-
 import type { FeatureGroupIconId } from "@/config/feature-comparison";
+import {
+  featureComparisonGroupIconPaths,
+  featureComparisonIconPaths,
+} from "@/lib/feature-comparison/feature-icon-paths";
 
-const groupIconMap: Record<FeatureGroupIconId, LucideIcon> = {
-  grid: LayoutGrid,
-  driver: UserRound,
-  alerts: TriangleAlert,
-  score: BarChart3,
-  camera: Video,
-  report: FileText,
-  fuel: Fuel,
-  pulse: Activity,
+type ComparisonSvgProps = {
+  markup: string;
+  className?: string;
 };
+
+function ComparisonSvg({ markup, className }: ComparisonSvgProps) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className={className}
+      dangerouslySetInnerHTML={{ __html: markup }}
+    />
+  );
+}
 
 export function FeatureGroupIcon({
   icon,
@@ -30,10 +27,20 @@ export function FeatureGroupIcon({
   icon: FeatureGroupIconId;
   className?: string;
 }) {
-  const Icon = groupIconMap[icon];
-  return <Icon className={className} aria-hidden strokeWidth={1.75} />;
+  const markup =
+    featureComparisonGroupIconPaths[icon] ??
+    featureComparisonGroupIconPaths.grid;
+  return <ComparisonSvg markup={markup} className={className} />;
 }
 
-export function FeatureRowIcon({ className }: { className?: string }) {
-  return <FileText className={className} aria-hidden strokeWidth={1.75} />;
+export function FeatureRowIcon({
+  icon,
+  className,
+}: {
+  icon: string;
+  className?: string;
+}) {
+  const markup =
+    featureComparisonIconPaths[icon] ?? featureComparisonIconPaths.report;
+  return <ComparisonSvg markup={markup} className={className} />;
 }

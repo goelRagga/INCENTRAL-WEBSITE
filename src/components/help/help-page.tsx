@@ -201,19 +201,16 @@ export function HelpPage({ activeFaqId }: HelpPageProps = {}) {
         </Container>
       </section>
 
-      <section
-        id={faqSection.id}
-        className="border-t border-[#e4e9ec] bg-[#f6f8fa] py-[62px] max-[640px]:py-[46px]"
-      >
-        <Container className="mx-auto max-w-[980px]">
-          <div className="mb-5">
-            <Eyebrow>{faqSection.eyebrow}</Eyebrow>
-            <h2 className="m-0 text-[clamp(32px,3.4vw,46px)] leading-[1.02] font-normal tracking-[-0.04em] text-[#14232b]">
-              {faqSection.title}
-            </h2>
+      <section id={faqSection.id} className="help70-section help70-answers">
+        <Container className="help70-answer-layout">
+          <div className="help70-section-head help70-section-head-single">
+            <div>
+              <p className="eyebrow">{faqSection.eyebrow}</p>
+              <h2>{faqSection.title}</h2>
+            </div>
           </div>
 
-          <div className="grid gap-2.5">
+          <div className="help70-faq-list">
             {faqSection.faqs.map((faq) => (
               <details
                 key={faq.id}
@@ -221,24 +218,16 @@ export function HelpPage({ activeFaqId }: HelpPageProps = {}) {
                 ref={(node) => {
                   faqRefs.current[faq.id] = node;
                 }}
-                className="group overflow-hidden rounded-[15px] border border-[#d9e3e8] bg-white open:[&_summary]:text-[#0565cf]"
+                className="help70-faq"
               >
-                <summary className="grid min-h-[62px] cursor-pointer list-none grid-cols-[minmax(0,1fr)_24px] items-center gap-[18px] px-[18px] text-[15px] font-semibold text-[#20343f] [&::-webkit-details-marker]:hidden max-[640px]:min-h-[58px] max-[640px]:px-[15px] max-[640px]:text-sm">
+                <summary>
                   {faq.question}
-                  <span aria-hidden="true" className="relative size-5 shrink-0">
-                    <span className="absolute top-1/2 left-1/2 block h-[1.5px] w-[11px] -translate-x-1/2 -translate-y-1/2 bg-[#526b78]" />
-                    <span className="absolute top-1/2 left-1/2 block h-[11px] w-[1.5px] -translate-x-1/2 -translate-y-1/2 bg-[#526b78] transition-transform duration-150 group-open:scale-y-0" />
-                  </span>
+                  <span aria-hidden="true" />
                 </summary>
-                <div className="px-[18px] pb-[18px] pr-[58px] text-[13.5px] leading-[1.58] text-[#5e7079] max-[640px]:px-[15px] max-[640px]:pr-[42px] max-[640px]:pb-4">
-                  <p className="m-0">{faq.answer}</p>
+                <div className="help70-faq-body">
+                  <p>{faq.answer}</p>
                   {faq.link ? (
-                    <Link
-                      href={faq.link.href}
-                      className="mt-2.5 inline-flex font-semibold text-[#0565cf] no-underline"
-                    >
-                      {faq.link.label}
-                    </Link>
+                    <Link href={faq.link.href}>{faq.link.label}</Link>
                   ) : null}
                 </div>
               </details>

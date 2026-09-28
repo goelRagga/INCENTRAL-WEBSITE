@@ -1,4 +1,5 @@
 export type FooterLink = {
+  id: string;
   label: string;
   href: string;
 };
@@ -33,28 +34,28 @@ export const footerNavGroups: FooterNavGroup[] = [
     id: "explore",
     title: "Explore",
     links: [
-      { label: "Find the right solution", href: "/#check-compatibility" },
-      { label: "Solutions", href: "/solutions" },
-      { label: "Compare Solutions", href: "/compare-solutions" },
-      { label: "AIS-140 Guide", href: "/ais-140-guide" },
+      { id: "finder", label: "Find the right solution", href: "/#check-compatibility" },
+      { id: "solutions", label: "Solutions", href: "/solutions" },
+      { id: "compare", label: "Compare Solutions", href: "/compare-solutions" },
+      { id: "ais", label: "AIS-140 Guide", href: "/ais-140-guide" },
     ],
   },
   {
     id: "account",
     title: "My InCentral",
     links: [
-      { label: "Sign In", href: "/sign-in?mode=login" },
-      { label: "Orders", href: "/sign-in?mode=login&next=orders" },
-      { label: "Cart", href: "/cart" },
+      { id: "dashboard", label: "Sign In", href: "/sign-in?mode=login" },
+      { id: "orders", label: "Orders", href: "/sign-in?mode=login&next=orders" },
+      { id: "cart", label: "Cart", href: "/cart" },
     ],
   },
   {
     id: "help",
     title: "Help",
     links: [
-      { label: "Help", href: "/help" },
-      { label: "Support", href: "/support" },
-      { label: "Warranty", href: "/help/warranty-support" },
+      { id: "help-home", label: "Help", href: "/help" },
+      { id: "support", label: "Support", href: "/support" },
+      { id: "warranty", label: "Warranty", href: "/help/warranty-support" },
     ],
   },
   {
@@ -62,11 +63,12 @@ export const footerNavGroups: FooterNavGroup[] = [
     title: "Policies",
     links: [
       {
+        id: "returns",
         label: "Returns, Refunds & Cancellation",
         href: "/policies/returns-refunds-cancellation",
       },
-      { label: "Privacy Notice", href: "/policies/privacy-notice" },
-      { label: "Terms & Conditions", href: "/policies/terms-conditions" },
+      { id: "privacy", label: "Privacy Notice", href: "/policies/privacy-notice" },
+      { id: "terms", label: "Terms & Conditions", href: "/policies/terms-conditions" },
     ],
   },
 ];

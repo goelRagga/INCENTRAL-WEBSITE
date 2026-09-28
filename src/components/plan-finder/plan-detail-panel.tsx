@@ -2,7 +2,6 @@
 
 import type { CSSProperties } from "react";
 import Image from "next/image";
-import Link from "next/link";
 
 import { planFinderSection } from "@/config/plan-finder";
 import { planAccentTokens } from "@/config/plans";
@@ -18,6 +17,7 @@ import type { PlanFamily } from "@/lib/plan-finder";
 import { cn } from "@/lib/utils";
 
 import { PlanBadge } from "./plan-badge";
+import { PlanFinderCartSuccess } from "./plan-finder-cart-success";
 import { PlanWhySection } from "./plan-why-section";
 import type { PlanFinderController } from "./use-plan-finder";
 
@@ -67,7 +67,7 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
 
   return (
     <article
-      className={cn("grid min-h-full overflow-hidden rounded-[20px] border border-[#cfdee5] bg-white shadow-[0_14px_34px_rgba(20,52,68,0.07)] max-[1050px]:grid-cols-1 min-[1051px]:grid-cols-[minmax(0,1.03fr)_minmax(320px,0.72fr)]")}
+      className={cn("grid min-h-full overflow-hidden rounded-[20px] border border-[#cfdee5] bg-white shadow-[0_14px_34px_rgba(20,52,68,0.07)] max-[1050px]:grid-cols-1 min-[1051px]:grid-cols-[minmax(0,1fr)_minmax(0,360px)]")}
       style={{ "--accent": tokens.accent } as CSSProperties}
     >
       <div className="relative flex min-w-0 flex-col justify-start px-[26px] pt-[26px] pb-[22px] before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-[var(--accent)] max-[760px]:px-[19px] max-[760px]:pt-[21px] max-[760px]:pb-[17px]">
@@ -121,7 +121,7 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
         <div className="relative h-[158px] overflow-hidden bg-[#e5eef3] max-[1050px]:h-[130px] max-[760px]:h-[135px]">
           <Image src={meta.art} alt="" fill className="object-cover" sizes="400px" />
         </div>
-        <div className="flex flex-1 flex-col p-[18px] max-[1050px]:p-[15px]">
+        <div className="flex min-w-0 flex-1 flex-col p-[18px] max-[1050px]:p-[15px]">
           {!cartSuccess ? (
             <div>
               <div className="flex items-end justify-between gap-3 max-[760px]:flex-col max-[760px]:items-start max-[760px]:gap-[3px]">
@@ -257,64 +257,15 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
               ) : null}
             </div>
           ) : (
-            <CartSuccess
+            <PlanFinderCartSuccess
               title={cartSuccess.title}
               summary={cartSuccess.summary}
-              onAnother={finder.reset}
+              onAnother={finder.resetForAnother}
+              className="flex-1"
             />
           )}
         </div>
       </aside>
     </article>
-  );
-}
-
-function CartSuccess({
-  title,
-  summary,
-  onAnother,
-}: {
-  title: string;
-  summary: string;
-  onAnother: () => void;
-}) {
-  return (
-    <div className="grid min-h-[214px] grid-cols-[46px_minmax(0,1fr)] content-center gap-[13px] px-0.5 py-1 max-[760px]:grid-cols-[42px_minmax(0,1fr)] max-[760px]:gap-[11px] max-[1050px]:min-h-0 max-[1050px]:py-[5px]">
-      <div
-        aria-hidden="true"
-        className="grid size-[46px] place-items-center rounded-[15px] border border-[#c6e7d8] bg-[linear-gradient(145deg,#e8f7f0,#d7f1e5)] text-[22px] font-medium text-[#24745c] shadow-[0_8px_18px_rgba(36,116,92,0.10)] max-[760px]:size-[42px] max-[760px]:rounded-[13px] max-[760px]:text-xl"
-      >
-        ✓
-      </div>
-      <div className="min-w-0 pt-px">
-        <span className="block text-[11px] font-semibold tracking-[0.05em] text-[#24745c] uppercase">
-          {planFinderSection.commerce.cartSuccessKicker}
-        </span>
-        <h5 className="mt-1 mb-0 text-2xl leading-[1.1] font-medium tracking-[-0.025em] text-[#173844] max-[760px]:text-[21px]">
-          {title}
-        </h5>
-        <p className="mt-1.5 mb-0 text-[12.5px] leading-[1.45] font-normal wrap-anywhere text-[#617781]">
-          {summary}
-        </p>
-      </div>
-      <div className="col-span-full mt-1.5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] gap-2 max-[760px]:grid-cols-1 max-[1050px]:grid-cols-2">
-        <button
-          type="button"
-          className="flex min-h-[46px] cursor-pointer items-center justify-center rounded-[11px] border border-[#bfd0d8] bg-white px-[15px] text-[13px] font-semibold whitespace-nowrap text-[#1767ad] hover:border-[#9fbac6] hover:bg-[#f5f9fb] max-[420px]:px-3 max-[420px]:text-[12.5px]"
-          onClick={onAnother}
-        >
-          {planFinderSection.commerce.cartAnotherLabel}
-        </button>
-        <Link
-          href="/cart"
-          className="flex min-h-[46px] items-center justify-center gap-[9px] rounded-[11px] border border-[#176fc0] bg-[#176fc0] px-[15px] text-[13px] font-semibold text-white no-underline shadow-[0_8px_18px_rgba(23,111,192,0.17)] hover:border-[#0e61ae] hover:bg-[#0e61ae]"
-        >
-          {planFinderSection.commerce.cartViewLabel}
-          <span aria-hidden="true" className="text-base font-normal">
-            →
-          </span>
-        </Link>
-      </div>
-    </div>
   );
 }

@@ -14,10 +14,12 @@ export const metadata = constructMetadata({
 
 function AuthPageFallback() {
   return (
-    <main id="main" className="auth-page">
-      <Container className="py-20 text-center text-sm text-[#64757e]">
-        Loading sign in…
-      </Container>
+    <main id="main" className="page-shell commerce-page">
+      <section className="auth-v52">
+        <Container className="py-20 text-center text-sm text-[#64757e]">
+          Loading sign in…
+        </Container>
+      </section>
     </main>
   );
 }

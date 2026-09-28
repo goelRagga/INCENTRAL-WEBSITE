@@ -58,6 +58,15 @@ export const CART_PRODUCTS: Record<string, CartProduct> = {
   },
 };
 
+let cartPriceOverrides: Record<string, number> = {};
+
+export function setCartProductPriceOverrides(overrides: Record<string, number>) {
+  cartPriceOverrides = { ...overrides };
+}
+
 export function getCartProduct(sku: string) {
-  return CART_PRODUCTS[sku] ?? null;
+  const base = CART_PRODUCTS[sku];
+  if (!base) return null;
+  const price = cartPriceOverrides[sku] ?? base.price;
+  return price === base.price ? base : { ...base, price };
 }

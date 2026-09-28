@@ -1,8 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { flushSync } from "react-dom";
 
+import { planFinderSection } from "@/config/plan-finder";
+import { applyCatalogPriceRows } from "@/lib/commerce/catalog-prices";
 import { normalizeConfiguredLine } from "@/lib/commerce/installation";
+import { api } from "@/lib/backend";
 
 import {
   CONFIGURATOR_STORAGE_KEY,
@@ -28,19 +32,28 @@ import {
   saveQuoteContext,
   type RecommendationResult,
 } from "@/lib/plan-finder";
+import {
+  PLAN_FINDER_RESET_EVENT,
+  consumePlanFinderResetFlag,
+} from "@/lib/plan-finder/session-reset";
 import type { CartLine, ConfiguratorState, PlanFamily } from "@/lib/plan-finder";
 
-const defaultState: ConfiguratorState = {
-  step: 1,
-  segment: "3w",
-  make: "",
-  emission: "",
-  aisRequired: true,
-  stateId: "",
-  selectedFamily: "",
-  quantity: 1,
-  selectedNeeds: [],
-};
+function createVehicleStepState(
+  overrides: Partial<ConfiguratorState> = {}
+): ConfiguratorState {
+  return {
+    step: 1,
+    segment: "",
+    make: "",
+    emission: "",
+    aisRequired: true,
+    stateId: "",
+    selectedFamily: "",
+    quantity: 1,
+    selectedNeeds: [],
+    ...overrides,
+  };
+}
 
 function restoreSelectedNeeds(expanded: string[]): string[] {
   const selected: string[] = [];
@@ -56,21 +69,24 @@ function restoreSelectedNeeds(expanded: string[]): string[] {
 }
 
 function loadState(storageKey: string): ConfiguratorState {
-  if (typeof window === "undefined") return defaultState;
+  const empty = createVehicleStepState({ segment: "3w" });
+  if (typeof window === "undefined") return empty;
   try {
     const stored = JSON.parse(sessionStorage.getItem(storageKey) || "null");
-    if (!stored || typeof stored !== "object") return defaultState;
+    if (!stored || typeof stored !== "object") return empty;
     const expanded = Array.isArray(stored.needs) ? stored.needs : [];
     return {
-      ...defaultState,
+      ...createVehicleStepState(),
       ...stored,
-      segment: stored.segment || defaultState.segment,
+      /** Portal always opens vehicle UI on load (setStep(1,false)), not solutions. */
+      step: 1,
+      segment: typeof stored.segment === "string" ? stored.segment : "",
       selectedNeeds: Array.isArray(stored.selectedNeeds)
         ? stored.selectedNeeds
         : restoreSelectedNeeds(expanded),
     };
   } catch {
-    return defaultState;
+    return empty;
   }
 }
 
@@ -117,18 +133,46 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
   const storageKey =
     variant === "modal" ? MODAL_CONFIGURATOR_STORAGE_KEY : CONFIGURATOR_STORAGE_KEY;
 
-  const [state, setState] = useState<ConfiguratorState>(defaultState);
+  const [state, setState] = useState<ConfiguratorState>(() =>
+    createVehicleStepState({ segment: "3w" })
+  );
   const [error, setError] = useState<string | null>(null);
   const [cartSuccess, setCartSuccess] = useState<{
     title: string;
     summary: string;
   } | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [, setPriceEpoch] = useState(0);
 
   useEffect(() => {
-    setState(loadState(storageKey));
+    if (consumePlanFinderResetFlag()) {
+      const next = createVehicleStepState();
+      setState(next);
+      persistState(storageKey, next);
+    } else {
+      setState(loadState(storageKey));
+    }
+    setCartSuccess(null);
     setHydrated(true);
   }, [storageKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.catalog.products();
+        if (!cancelled) {
+          applyCatalogPriceRows(data);
+          setPriceEpoch((n) => n + 1);
+        }
+      } catch {
+        /* static catalog prices remain */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -230,19 +274,20 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     const count = result.recommendations.length;
     const hasNeeds = expandedNeeds.length > 0;
     const hasFullNeedsMatch = !hasNeeds || result.needsFullyMet;
+    const intro = planFinderSection.resultsStep.resultsIntro;
 
     if (count === 1) {
       return hasNeeds && !hasFullNeedsMatch
-        ? "This solution fits your vehicle, but it does not include everything you selected."
-        : "This is the only solution that fits these vehicle details.";
+        ? "This plan fits your vehicle, but it does not include everything you selected."
+        : `${intro} This is the only plan that fits these vehicle details.`;
     }
     if (hasNeeds && hasFullNeedsMatch) {
-      return "All solutions shown fit your vehicle. Recommended is the lowest compatible solution that covers everything you selected.";
+      return `${intro} Recommended is the lowest compatible plan that covers everything you selected.`;
     }
     if (hasNeeds) {
-      return "These solutions fit your vehicle, but none includes everything you selected.";
+      return "These plans fit your vehicle, but none includes everything you selected.";
     }
-    return "All solutions shown fit these vehicle details.";
+    return intro;
   }, [result, expandedNeeds]);
 
   const availabilityNotices = useMemo(() => {
@@ -275,9 +320,9 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
   }, [result, expandedNeeds, state.aisRequired, state.stateId]);
 
   const resultsTitle = useMemo(() => {
-    if (!result || result.status !== "VERIFIED") return "Solutions that fit";
+    if (!result || result.status !== "VERIFIED") return "Plans that fit";
     const count = result.recommendations.length;
-    return count === 1 ? "1 solution fits" : `${count} solutions fit`;
+    return count === 1 ? "1 plan fits" : `${count} plans fit`;
   }, [result]);
 
   const update = useCallback((patch: Partial<ConfiguratorState>) => {
@@ -349,11 +394,31 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     if (step === 1) setCartSuccess(null);
   }, []);
 
-  const reset = useCallback(() => {
-    setState(defaultState);
-    setError(null);
-    setCartSuccess(null);
-  }, []);
+  /** Portal resetForAnother — back to vehicle details (step 1), clear selections. */
+  const resetForAnother = useCallback(() => {
+    const next = createVehicleStepState();
+    persistState(storageKey, next);
+    flushSync(() => {
+      setState(next);
+      setError(null);
+      setCartSuccess(null);
+    });
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(planFinderSection.id)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    const onReset = () => resetForAnother();
+    window.addEventListener(PLAN_FINDER_RESET_EVENT, onReset);
+    return () => window.removeEventListener(PLAN_FINDER_RESET_EVENT, onReset);
+  }, [resetForAnother]);
+
+  const reset = resetForAnother;
 
   const selectFamily = useCallback((family: PlanFamily) => {
     setState((prev) => ({ ...prev, selectedFamily: family }));
@@ -491,6 +556,7 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     validateAndRecommend,
     goToStep,
     reset,
+    resetForAnother,
     selectFamily,
     setAisRequired,
     setStateId,
