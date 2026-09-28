@@ -40,14 +40,14 @@ export function PlanFinder({
             type="button"
             aria-label="Go to vehicle details"
             className={cn(
-              "flex items-center gap-[9px] border-0 bg-transparent px-1.5 py-[5px] text-[13.5px] font-medium",
+              "flex items-center gap-[9px] border-0 bg-transparent px-1.5 py-[5px] text-[12px] font-medium",
               state.step === 1 ? "text-[#163846]" : "cursor-pointer text-[#1767ad] hover:text-[#0e5c9d] hover:[&_span]:underline hover:[&_span]:underline-offset-[3px]"
             )}
             onClick={() => state.step === 2 && finder.goToStep(1)}
           >
             <b
               className={cn(
-                "grid size-[30px] place-items-center rounded-full border text-[11.5px] font-semibold",
+                "grid size-[28px] place-items-center rounded-full border text-[10.5px] font-semibold",
                 state.step === 1
                   ? "border-[#1767ad] bg-[#1767ad] text-white"
                   : "border-[#93bddd] bg-[#f3f8fc] text-[#1767ad]"
@@ -60,13 +60,13 @@ export function PlanFinder({
           <i aria-hidden="true" className="h-px w-[52px] bg-[#d8e2e7]" />
           <span
             className={cn(
-              "flex items-center gap-[9px] text-[13.5px] font-medium",
+              "flex items-center gap-[9px] text-[12px] font-medium",
               state.step === 2 ? "text-[#163846]" : "text-[#8a989f]"
             )}
           >
             <b
               className={cn(
-                "grid size-[30px] place-items-center rounded-full border text-[11.5px] font-semibold",
+                "grid size-[28px] place-items-center rounded-full border text-[10.5px] font-semibold",
                 state.step === 2
                   ? "border-[#1767ad] bg-[#1767ad] text-white"
                   : "border-[#ccd8de] bg-white text-inherit"

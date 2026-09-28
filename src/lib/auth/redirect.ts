@@ -4,16 +4,16 @@ export function resolveAuthRedirect(
   next: string | null,
   checkout: boolean
 ): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    return next;
+  }
+
   if (checkout || next === "checkout") {
-    return authPage.checkoutContext.cartHref;
+    return "/checkout";
   }
 
   if (next === "orders") {
     return `${authPage.accountHref}#orders`;
-  }
-
-  if (next && next.startsWith("/") && !next.startsWith("//")) {
-    return next;
   }
 
   return "/";
