@@ -35,11 +35,11 @@ export const planFinderSection = {
   resultsStep: {
     summaryLabel: "Vehicle details",
     editLabel: "Edit",
-    plansKicker: "Plans that fit",
-    planRailLabel: "Plans that fit",
+    plansKicker: "Solutions that fit",
+    planRailLabel: "Solutions that fit",
     planRailHint: "Choose a solution to review the fit and price.",
     unverifiedMessage:
-      "We could not find a plan for these vehicle details. Check the details or contact us.",
+      "We could not find a solution for these vehicle details. Check the details or contact us.",
   },
   commerce: {
     aisHeadline: "Choose AIS-140 Certified or Standard",

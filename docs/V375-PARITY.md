@@ -29,10 +29,10 @@ Living checklist against the static portal. **Source of truth:** v375 HTML + `as
 | v375 file | Next route | Status |
 |-----------|------------|--------|
 | `index.html` | `/` | In progress (homepage sections above) |
-| `incert.html` | `/plans/incert` | PDP — review vs v375 |
-| `insight.html` | `/plans/insight` | PDP — review |
-| `ingenious.html` | `/plans/ingenious` | PDP — review |
-| `invision-plus.html` | `/plans/invision-plus` | PDP — review |
+| `incert.html` | `/solutions/incert` | PDP — review vs v375 |
+| `insight.html` | `/solutions/insight` | PDP — review |
+| `ingenious.html` | `/solutions/ingenious` | PDP — review |
+| `invision-plus.html` | `/solutions/invision-plus` | PDP — review |
 | `compare-solutions.html` | `/compare-solutions` | Review |
 | `ais-140-guide.html` | `/ais-140-guide` | Review |
 | `help.html` | `/help` | Review |

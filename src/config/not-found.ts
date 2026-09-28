@@ -15,7 +15,7 @@ export const notFoundPage = {
   shortcuts: {
     label: "Continue to",
     links: [
-      { label: "Solutions", href: "/#solutions" },
+      { label: "Solutions", href: "/solutions" },
       { label: "Help", href: "/help" },
       { label: "Support", href: "/support" },
     ],

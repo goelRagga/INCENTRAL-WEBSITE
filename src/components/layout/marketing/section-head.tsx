@@ -34,7 +34,8 @@ export function SectionHead({
       <h2
         id={titleId}
         className={cn(
-          isH139 && "text-balance",
+          isH139 &&
+            "m-0 max-w-[760px] text-balance text-[clamp(29px,3vw,40px)] leading-[1.04] font-medium tracking-[-0.04em] text-[#182b35] max-[520px]:text-[31px]",
           !isH139 &&
             "m-0 max-w-[760px] text-[32px] leading-[1.04] font-normal tracking-[-0.038em] text-[#182b35] min-[761px]:text-[clamp(32px,3.1vw,42px)] max-[520px]:text-[31px]",
           titleClassName
@@ -48,7 +49,7 @@ export function SectionHead({
 
   const eyebrowNode = eyebrow ? (
     isH139 ? (
-      <Eyebrow>{eyebrow}</Eyebrow>
+      <Eyebrow className="mb-2 max-[760px]:mb-1">{eyebrow}</Eyebrow>
     ) : (
       <p className="mb-2 text-[12px] leading-[1.22] font-semibold tracking-[0.085em] text-[#1767ad] uppercase">
         {eyebrow}
@@ -77,12 +78,26 @@ export function SectionHead({
 
   if (isH139) {
     return (
-      <div className={cn("h139-head", className)}>
+      <div
+        className={cn(
+          "mb-[22px] flex items-end justify-between gap-[38px] max-[780px]:flex-col max-[780px]:items-start max-[780px]:gap-2",
+          className
+        )}
+      >
         <div>
           {eyebrowNode}
           {titleNode}
         </div>
-        {description ? <p className={descriptionClassName}>{description}</p> : null}
+        {description ? (
+          <p
+            className={cn(
+              "m-0 mb-[3px] max-w-[430px] text-left text-[14.5px] leading-[1.55] text-[#6a7c85] min-[781px]:text-right max-[680px]:text-sm",
+              descriptionClassName
+            )}
+          >
+            {description}
+          </p>
+        ) : null}
       </div>
     );
   }

@@ -19,7 +19,7 @@ import { MobileNavigation } from "./mobile-navigation";
 import { PlansMegaMenu } from "./plans-mega-menu";
 
 export function SiteHeader() {
-  const desktopMegaBreakpoint = 1041;
+  const desktopMegaBreakpoint = 1100;
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const { deviceCount } = useConfiguredCart();
@@ -98,7 +98,7 @@ export function SiteHeader() {
     <header
       ref={headerRef}
       data-inc-header
-      className="sticky top-0 z-[1000] h-[var(--spacing-header-mobile)] overflow-visible border-b border-inc-header-border bg-white/[0.985] shadow-[0_1px_0_rgba(17,25,29,0.02)] backdrop-blur-[16px] min-[1100px]:h-[var(--spacing-header)]"
+      className="sticky top-0 z-[1000] h-[var(--spacing-header-mobile)] overflow-visible border-b border-inc-header-border bg-white/[0.985] shadow-[0_1px_0_rgba(17,25,29,0.02)] backdrop-blur-[16px] min-[1100px]:h-[var(--spacing-header)] relative"
     >
       <div
         className={cn(
@@ -116,7 +116,7 @@ export function SiteHeader() {
         >
           <ul className="m-0 flex list-none items-center justify-center gap-[27px] p-0 max-[1160px]:gap-[17px]">
             <li
-              className="inc-nav-plans static"
+              className="inc-nav-plans"
               onMouseEnter={() => {
                 if (window.innerWidth >= desktopMegaBreakpoint) {
                   openPlansMenu();
@@ -128,37 +128,51 @@ export function SiteHeader() {
                 }
               }}
             >
-              <button
-                type="button"
-                aria-controls={plansMenuId}
-                aria-expanded={plansOpen}
-                data-inc-plans-trigger
-                data-nav="plans"
-                data-active={plansOpen ? "true" : "false"}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setPlansOpen((current) => !current);
-                }}
-                className={cn(
-                  "inc-nav-trigger inc-nav-underline relative flex min-h-12 cursor-pointer items-center gap-1.5 border-0 bg-transparent px-0.5 text-[15px] font-medium whitespace-nowrap text-inc-nav transition-colors duration-200",
-                  "hover:text-inc-nav-hover focus-visible:text-inc-nav-hover",
-                  plansOpen && "text-inc-nav-hover"
-                )}
-              >
-                Solutions
-                <ChevronDown
+              <div className="flex items-center gap-0.5">
+                <Link
+                  href="/solutions"
+                  data-nav="plans"
+                  onClick={closePlansMenu}
                   className={cn(
-                    "size-[13px] stroke-[1.7] transition-transform duration-[180ms]",
-                    plansOpen && "-scale-y-100"
+                    "inc-nav-trigger inc-nav-underline relative flex min-h-12 items-center px-0.5 text-[15px] font-medium whitespace-nowrap text-inc-nav no-underline transition-colors duration-200",
+                    "hover:text-inc-nav-hover focus-visible:text-inc-nav-hover",
+                    plansOpen && "text-inc-nav-hover"
                   )}
-                  aria-hidden="true"
-                />
-              </button>
+                >
+                  Solutions
+                </Link>
+                <button
+                  type="button"
+                  aria-controls={plansMenuId}
+                  aria-expanded={plansOpen}
+                  aria-label="Show solution menu"
+                  data-inc-plans-trigger
+                  data-active={plansOpen ? "true" : "false"}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setPlansOpen((current) => !current);
+                  }}
+                  className={cn(
+                    "inc-nav-trigger relative flex size-8 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-inc-nav transition-colors duration-200",
+                    "hover:bg-[#f4f8fd] hover:text-inc-nav-hover focus-visible:text-inc-nav-hover",
+                    plansOpen && "text-inc-nav-hover"
+                  )}
+                >
+                  <ChevronDown
+                    className={cn(
+                      "size-[13px] stroke-[1.7] transition-transform duration-[180ms]",
+                      plansOpen && "-scale-y-100"
+                    )}
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
               <PlansMegaMenu
                 open={plansOpen}
                 menuId={plansMenuId}
                 onMouseEnter={openPlansMenu}
                 onMouseLeave={scheduleClosePlansMenu}
+                onNavigate={closePlansMenu}
               />
             </li>
 

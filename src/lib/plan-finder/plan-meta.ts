@@ -1,3 +1,5 @@
+import { assetImage } from "@/lib/assets";
+
 import type { PlanFamily } from "./types";
 
 export const CAP_LABELS: Record<string, string> = {
@@ -50,7 +52,7 @@ export const planMeta: Record<PlanFamily, PlanMeta> = {
     name: "InCert",
     value: { standard: "Tracking", ais: "Tracking" },
     desc: "Track vehicles, trips and key driver activity.",
-    art: "/images/hero/hero-incert-concept.webp",
+    art: assetImage("hero-incert-concept.webp"),
     key: ["Location, Trips & Geofencing", "Driver Alerts", "Fleet Reports"],
     hardware: { standard: "EdgeEco", ais: "EdgeEco" },
     install: {
@@ -62,7 +64,7 @@ export const planMeta: Record<PlanFamily, PlanMeta> = {
     name: "InSight",
     value: { standard: "Fuel & repair", ais: "Fuel & repair" },
     desc: "Add fuel consumption insights, vehicle fault codes and repair guidance.",
-    art: "/images/hero/hero-insight-concept.webp",
+    art: assetImage("hero-insight-concept.webp"),
     key: ["Fuel Consumption Insights", "Vehicle Fault Codes", "Repair Guidance"],
     hardware: { standard: "EdgeEco", ais: "EdgeEco" },
     install: {
@@ -74,7 +76,7 @@ export const planMeta: Record<PlanFamily, PlanMeta> = {
     name: "InGenious",
     value: { standard: "Predictive health", ais: "Predictive health" },
     desc: "Add predictive vehicle health, full fuel management and fleet automation.",
-    art: "/images/hero/hero-ingenious-concept.webp",
+    art: assetImage("hero-ingenious-concept.webp"),
     key: ["Predictive Vehicle Health", "Full Fuel Management", "Automated Fleet Tasks"],
     hardware: { standard: "EdgePrime", ais: "EdgeEco" },
     install: {
@@ -86,7 +88,7 @@ export const planMeta: Record<PlanFamily, PlanMeta> = {
     name: "InVision+",
     value: { standard: "Predictive + video", ais: "Predictive + video" },
     desc: "Add AI-Driven Video Telematics to tracking, full fuel management and predictive vehicle health.",
-    art: "/images/hero/hero-invisionplus-concept.webp",
+    art: assetImage("hero-invisionplus-concept.webp"),
     key: ["AI-Driven Video Telematics", "Dual-Camera Visibility", "In-Cabin Alerts"],
     hardware: { standard: "DriveAI", ais: "DriveAI + EdgeEco" },
     install: {

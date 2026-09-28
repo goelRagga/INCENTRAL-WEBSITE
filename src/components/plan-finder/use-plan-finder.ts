@@ -233,16 +233,16 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
 
     if (count === 1) {
       return hasNeeds && !hasFullNeedsMatch
-        ? "This plan fits your vehicle, but it does not include everything you selected."
-        : "This is the only plan that fits these vehicle details.";
+        ? "This solution fits your vehicle, but it does not include everything you selected."
+        : "This is the only solution that fits these vehicle details.";
     }
     if (hasNeeds && hasFullNeedsMatch) {
-      return "All plans shown fit your vehicle. Recommended is the lowest compatible plan that covers everything you selected.";
+      return "All solutions shown fit your vehicle. Recommended is the lowest compatible solution that covers everything you selected.";
     }
     if (hasNeeds) {
-      return "These plans fit your vehicle, but none includes everything you selected.";
+      return "These solutions fit your vehicle, but none includes everything you selected.";
     }
-    return "All plans shown fit these vehicle details.";
+    return "All solutions shown fit these vehicle details.";
   }, [result, expandedNeeds]);
 
   const availabilityNotices = useMemo(() => {
@@ -259,7 +259,7 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
         ? ` The unavailable need${missing.length === 1 ? " is" : "s are"} ${missing.join(", ")}.`
         : "";
       notices.push(
-        `No compatible plan for this vehicle covers everything you selected.${missingCopy} Change your choices or contact us.`
+        `No compatible solution for this vehicle covers everything you selected.${missingCopy} Change your choices or contact us.`
       );
     }
 
@@ -275,9 +275,9 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
   }, [result, expandedNeeds, state.aisRequired, state.stateId]);
 
   const resultsTitle = useMemo(() => {
-    if (!result || result.status !== "VERIFIED") return "Plans that fit";
+    if (!result || result.status !== "VERIFIED") return "Solutions that fit";
     const count = result.recommendations.length;
-    return count === 1 ? "1 plan fits" : `${count} plans fit`;
+    return count === 1 ? "1 solution fits" : `${count} solutions fit`;
   }, [result]);
 
   const update = useCallback((patch: Partial<ConfiguratorState>) => {
