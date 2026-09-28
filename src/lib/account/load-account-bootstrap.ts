@@ -17,7 +17,7 @@ async function safeFetch<T>(run: () => Promise<T>): Promise<FetchResult<T>> {
   }
 }
 
-/** Live API where available; mock fixture fills gaps (profile fields, orders, billing, support). */
+/** Live API where available; mock fixture fills gaps. */
 export async function loadAccountBootstrap(session?: {
   name?: string;
   email?: string;
@@ -28,10 +28,12 @@ export async function loadAccountBootstrap(session?: {
     return fallback;
   }
 
-  const [profileRes, ordersRes, addressesRes] = await Promise.all([
+  const [profileRes, ordersRes, addressesRes, invoicesRes, paymentsRes] = await Promise.all([
     safeFetch(() => api.account.profile()),
     safeFetch(() => api.account.orders()),
     safeFetch(() => api.account.addresses()),
+    safeFetch(() => api.account.invoices()),
+    safeFetch(() => api.account.payments()),
   ]);
 
   const profilePayload =
@@ -45,9 +47,13 @@ export async function loadAccountBootstrap(session?: {
     profile: profilePayload,
     orders: ordersRes.ok ? ordersRes.data : [],
     addresses: addressesPayload,
+    invoices: invoicesRes.ok ? invoicesRes.data : undefined,
+    payments: paymentsRes.ok ? paymentsRes.data : undefined,
     session,
     profileFromApi: profileRes.ok,
     ordersFromApi: ordersRes.ok,
+    invoicesFromApi: invoicesRes.ok,
+    paymentsFromApi: paymentsRes.ok,
   });
 
   return mergeAccountBootstrap(sources, fallback, session);

@@ -37,9 +37,9 @@ import {
   type AccountPanelId,
 } from "@/config/account";
 import { authPage } from "@/config/auth";
+import { api } from "@/lib/backend";
 import { useAuth } from "@/hooks/use-auth";
 import { loadAccountBootstrap } from "@/lib/account/load-account-bootstrap";
-import { loadAccountMockBootstrap } from "@/lib/account/mock-data";
 import {
   formatAddressLines,
   formatDate,
@@ -67,9 +67,7 @@ export function AccountPage() {
   const signedOut = useRef(false);
   const { showToast, toastPortal } = useAccountToast();
 
-  const [bootstrap, setBootstrap] = useState<AccountBootstrap>(() =>
-    loadAccountMockBootstrap()
-  );
+  const [bootstrap, setBootstrap] = useState<AccountBootstrap | null>(null);
   const [activePanel, setActivePanel] = useState<AccountPanelId>("overview");
   const [orderFilter, setOrderFilter] = useState<"all" | "active" | "past">("all");
   const [orderQuery, setOrderQuery] = useState("");
@@ -223,6 +221,7 @@ export function AccountPage() {
       phone?: string;
       gstin?: string;
     }) => {
+      await api.account.updateProfile(payload);
       setBootstrap((prev) => {
         if (!prev) return prev;
         const profile = {
@@ -239,6 +238,7 @@ export function AccountPage() {
 
   const handleSaveAddress = useCallback(
     async (payload: AccountAddress) => {
+      await api.account.updateAddress(payload.id, payload);
       setBootstrap((prev) => {
         if (!prev) return prev;
         if (payload.id === "billing") {
@@ -265,12 +265,7 @@ export function AccountPage() {
   const handleInvoiceDownload = useCallback(
     (e?: MouseEvent) => {
       e?.preventDefault();
-      if (accountUseMockMutations) {
-        showToast(
-          "Invoice download is unavailable right now. Please try again later.",
-          "bad"
-        );
-      }
+      showToast("Invoice download is unavailable right now. Please try again later.", "bad");
     },
     [showToast]
   );
@@ -1016,7 +1011,7 @@ export function AccountPage() {
         customerName={fullName}
         open={selectedTicketId !== null && selectedTicket !== null}
         onClose={() => setSelectedTicketId(null)}
-        onReply={accountUseMockMutations ? handleTicketReply : undefined}
+        onReply={handleTicketReply}
       />
       <AccountNewTicketDialog
         open={newTicketOpen}
@@ -1026,19 +1021,19 @@ export function AccountPage() {
           phone: profile?.phone ?? "",
         }}
         orderReference={newTicketOrderRef}
-        onSubmit={accountUseMockMutations ? handleCreateTicket : async () => {}}
+        onSubmit={handleCreateTicket}
       />
       <AccountProfileDialog
         open={profileOpen}
         profile={profile ?? null}
         onClose={() => setProfileOpen(false)}
-        onSave={accountUseMockMutations ? handleSaveProfile : async () => {}}
+        onSave={handleSaveProfile}
       />
       <AccountAddressDialog
         open={editAddress !== null}
         address={editAddress}
         onClose={() => setEditAddress(null)}
-        onSave={accountUseMockMutations ? handleSaveAddress : async () => {}}
+        onSave={handleSaveAddress}
       />
       {toastPortal}
     </main>
