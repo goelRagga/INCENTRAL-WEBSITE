@@ -23,9 +23,19 @@ const nextConfig: NextConfig = {
     return [
       ...planRouteIds.map((planId) => ({
         source: `/${planId}`,
-        destination: `/plans/${planId}`,
+        destination: `/solutions/${planId}`,
         permanent: true,
       })),
+      {
+        source: "/plans",
+        destination: "/solutions",
+        permanent: true,
+      },
+      {
+        source: "/plans/:planId*",
+        destination: "/solutions/:planId*",
+        permanent: true,
+      },
       ...policySlugs.map((slug) => ({
         source: `/${slug}`,
         destination: `/policies/${slug}`,
@@ -38,12 +48,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/plans/invision",
-        destination: "/plans/invision-plus?line=standard",
+        destination: "/solutions/invision-plus?line=standard",
         permanent: true,
       },
       {
         source: "/invision",
-        destination: "/plans/invision-plus?line=standard",
+        destination: "/solutions/invision-plus?line=standard",
         permanent: true,
       },
       {

@@ -1,4 +1,5 @@
 import type { PlanRouteId } from "@/config/plans";
+import { assetImage } from "@/lib/assets";
 
 export type CustomerStoryFormat = "standard" | "short";
 
@@ -16,7 +17,7 @@ export type CustomerStory = {
   tabDetail?: string;
 };
 
-const thumb = (file: string) => `/images/stories/${file}`;
+const thumb = (file: string) => assetImage(file);
 
 export const customerStoriesById: Record<string, CustomerStory> = {
   "rushabh-cityflo": {

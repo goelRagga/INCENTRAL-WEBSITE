@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 import { Container } from "@/components/common/container";
+import { PlanPdpContainer } from "@/components/plan-pdp/plan-pdp-container";
 import { ComparisonMark } from "@/components/compare-solutions/comparison-mark";
 import { FeatureGroupIcon } from "@/components/compare-solutions/comparison-icons";
 import {
@@ -23,6 +24,7 @@ type SolutionComparisonSectionProps = {
   mode?: "standalone" | "plan-pdp";
   currentPlanId?: PlanRouteId;
   badgeLabel?: string;
+  compareLine?: "ais" | "standard";
   subtitle?: string;
   className?: string;
 };
@@ -32,6 +34,7 @@ export function SolutionComparisonSection({
   mode = "standalone",
   currentPlanId,
   badgeLabel,
+  compareLine = "standard",
   subtitle,
   className,
 }: SolutionComparisonSectionProps) {
@@ -55,19 +58,21 @@ export function SolutionComparisonSection({
       ? "Select any capability group to see exactly what each solution includes."
       : "Select any feature group to open the detailed feature-by-feature comparison.");
 
+  const SectionContainer = mode === "plan-pdp" ? PlanPdpContainer : Container;
+
   return (
     <>
       <section
         id={id}
         aria-labelledby={`${id}-title`}
-        data-line="standard"
+        data-line={compareLine}
         className={cn(
           "pcmp-section",
           mode === "standalone" && "compare-standalone",
           className
         )}
       >
-        <Container>
+        <SectionContainer>
           <div className="pcmp-shell">
             <div className="pcmp-head">
               <div className="pcmp-head-copy">
@@ -103,7 +108,7 @@ export function SolutionComparisonSection({
                           type="button"
                           className="pcmp-group-trigger"
                           data-feature-group={group.id}
-                          data-line="standard"
+                          data-line={compareLine}
                           onClick={() => openGroup(group.id)}
                         >
                           <span className="pcmp-group-icon">
@@ -130,7 +135,7 @@ export function SolutionComparisonSection({
               </table>
             </div>
           </div>
-        </Container>
+        </SectionContainer>
       </section>
 
       <FeatureGroupDialog

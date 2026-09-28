@@ -1,11 +1,25 @@
 ---
-description: Styling — Tailwind + shadcn on components; only globals.css for CSS
+description: No new CSS files — Tailwind + shadcn only (INCENTRAL-WEBSITE)
 alwaysApply: true
 ---
 
 # Styling (INCENTRAL-WEBSITE)
 
-- **Only CSS file:** `src/app/globals.css` (Tailwind `@import`, `@theme`, shared v375 component classes). Do **not** add files under `src/styles/` or other `.css` imports.
-- **Components:** Prefer **Tailwind utilities** and **shadcn/ui** (`@/components/ui/*`) with `cn()` for new UI.
-- **Legacy class hooks** (e.g. `h139-card`, `h132-hero`) may stay in `globals.css` `@layer components` until migrated to Tailwind.
-- Dynamic plan accents: use `planAccentTokens` / inline `style` when utilities cannot express per-card colors.
+Project root: `/Users/vanshikasanan/Personal Projects/incentral/INCENTRAL-WEBSITE`
+
+## Hard rule — no new CSS files
+
+- **Do not create** any new `.css` file anywhere under this project (including `src/styles/`, `src/components/`, `src/app/`, `public/`, etc.).
+- **Do not add** new `@import` lines in `globals.css` for separate stylesheets.
+- **Do not copy** v375 reference CSS into new files in this repo — port visuals with **Tailwind utilities** and **shadcn/ui** in `.tsx` instead.
+
+## Allowed
+
+- **Edit only** the existing `src/app/globals.css` when unavoidable (`@import "tailwindcss"`, `@theme`, minimal `@layer base/components` tokens). Prefer Tailwind in components first.
+- **Legacy:** Existing files under `src/styles/v375/` and their current `globals.css` imports may remain until migrated away; then **delete** those files and remove imports — do not replace them with new CSS files.
+
+## Implementation
+
+- Use **Tailwind** + **`cn()`** + **shadcn/ui** for all new UI, fixes, and migrations.
+- **Product copy/config:** `src/config/plan-pdp/` and related config — not inline in components.
+- Plan accents: `planAccentTokens` / inline `style` when utilities cannot express per-card colors.

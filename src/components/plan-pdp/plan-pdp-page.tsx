@@ -1,84 +1,80 @@
 import { notFound } from "next/navigation";
 
-import { CtaBand } from "@/components/layout/marketing";
+import { SolutionComparisonSection } from "@/components/compare-solutions/solution-comparison-section";
+import { getPlanProductById, type PlanRouteId } from "@/config/plans";
+import { planCustomerStories } from "@/config/customer-stories";
 import {
-  getPlanProductById,
-  getPlanShowcaseCardById,
-  plansMega,
-  type PlanRouteId,
-} from "@/config/plans";
-import { planMeta, planValueLabel, variantLabel } from "@/lib/plan-finder/plan-meta";
+  getPlanPdpVariant,
+  planPdpHeroImage,
+  type PlanPdpLine,
+} from "@/config/plan-pdp";
+import { planMeta } from "@/lib/plan-finder/plan-meta";
 import { planRouteToFamily } from "@/lib/plans/plan-route-map";
 
-import { CustomerStoriesSection } from "@/components/testimonials/customer-stories-section";
-import { planCustomerStories } from "@/config/customer-stories";
-
-import { PlanHighlightsSection } from "./plan-highlights-section";
+import { PlanPdpCustomerProof } from "./plan-pdp-customer-proof";
 import { PlanPdpHero } from "./plan-pdp-hero";
 import { PlanPdpLayout } from "./plan-pdp-layout";
+import { PlanPdpMediaSection } from "./plan-pdp-media-section";
+import { PlanPdpOrderPath } from "./plan-pdp-order-path";
+import { PlanPdpTechSection } from "./plan-pdp-tech-section";
+import { PlanValueShowcase } from "./plan-value-showcase";
 
 type PlanPdpPageProps = {
   planId: PlanRouteId;
-  line?: "ais" | "standard";
-};
-
-const planBestFor: Record<PlanRouteId, string> = {
-  incert: "Fleet operators that need a clear day-to-day view of vehicles, trips and driver events.",
-  insight:
-    "Teams that want fuel and repair visibility on top of core tracking and compliance.",
-  ingenious:
-    "Operators ready for predictive vehicle health, fuel management and fleet automation.",
-  "invision-plus":
-    "Fleets that need video safety alongside tracking, fuel and predictive health capabilities.",
+  line?: PlanPdpLine;
 };
 
 export function PlanPdpPage({ planId, line = "ais" }: PlanPdpPageProps) {
   const product = getPlanProductById(planId);
-  const showcase = getPlanShowcaseCardById(planId);
   const family = planRouteToFamily(planId);
   const meta = planMeta[family];
 
-  if (!product || !showcase) notFound();
+  if (!product) notFound();
 
   const hasAisVariant = product.variants.some((variant) => variant.href.includes("line=ais"));
-  const resolvedLine = line === "ais" && hasAisVariant ? "ais" : "standard";
-  const lineLabel = variantLabel(resolvedLine === "ais");
+  const resolvedLine: PlanPdpLine =
+    line === "ais" && hasAisVariant ? "ais" : "standard";
+  const variant = getPlanPdpVariant(planId, resolvedLine);
   const finderHref = `/?interest=${family}&line=${resolvedLine}#check-compatibility`;
+  const storiesConfig = planCustomerStories[planId];
 
   return (
-    <PlanPdpLayout product={product} lineLabel={lineLabel}>
+    <PlanPdpLayout
+      product={product}
+      lineLabel={variant.lineLabel}
+      productFamily={family}
+    >
       <PlanPdpHero
-        accent={product.accent}
-        lineLabel={lineLabel}
-        valueLabel={planValueLabel(family, resolvedLine === "ais")}
-        name={meta.name}
-        tagline={showcase.tagline}
-        summary={meta.desc}
-        image={meta.art}
-        finderHref={finderHref}
-      />
-
-      <PlanHighlightsSection
         planName={meta.name}
-        features={meta.key}
-        bestFor={planBestFor[planId]}
+        lineLabel={variant.lineLabel}
+        tagline={variant.tagline}
+        summary={variant.summary}
+        heroImage={planPdpHeroImage(planId)}
+        finderHref={finderHref}
+        hasLineToggle={product.variants.length > 1}
       />
 
-      <CustomerStoriesSection
-        variant="plan-pdp"
-        id="customer-proof"
-        titleId={planCustomerStories[planId].titleId}
-        title={planCustomerStories[planId].title}
-        description={planCustomerStories[planId].description}
-        stories={planCustomerStories[planId].stories}
+      <PlanValueShowcase content={variant.value} />
+
+      <PlanPdpMediaSection media={variant.media} />
+
+      <PlanPdpTechSection tech={variant.tech} />
+
+      <PlanPdpOrderPath order={variant.order} />
+
+      <PlanPdpCustomerProof
+        titleId={storiesConfig.titleId}
+        title={storiesConfig.title}
+        description={storiesConfig.description}
+        stories={storiesConfig.stories}
       />
 
-      <CtaBand
-        eyebrow="Compare plans"
-        title="Review the full plan range or confirm fit for your fleet."
-        description="Use the plan finder to match vehicles, needs and AIS-140 route before you choose."
-        primaryAction={plansMega.cta}
-        secondaryAction={{ label: "See all plans", href: "/plans" }}
+      <SolutionComparisonSection
+        mode="plan-pdp"
+        currentPlanId={planId}
+        badgeLabel={variant.compareBadge}
+        compareLine={resolvedLine}
+        id={`compare-solutions-${resolvedLine}-${planId}`}
       />
     </PlanPdpLayout>
   );

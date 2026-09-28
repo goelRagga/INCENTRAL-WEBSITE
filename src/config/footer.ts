@@ -34,7 +34,7 @@ export const footerNavGroups: FooterNavGroup[] = [
     title: "Explore",
     links: [
       { label: "Find the right solution", href: "/#check-compatibility" },
-      { label: "Solutions", href: "/#solutions" },
+      { label: "Solutions", href: "/solutions" },
       { label: "Compare Solutions", href: "/compare-solutions" },
       { label: "AIS-140 Guide", href: "/ais-140-guide" },
     ],

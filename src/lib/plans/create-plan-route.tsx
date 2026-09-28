@@ -6,8 +6,8 @@ export function createPlanRouteMetadata(planId: PlanRouteId) {
   const product = getPlanProductById(planId);
   if (!product) {
     return constructMetadata({
-      title: "Plan | InCentral",
-      description: "Explore InCentral fleet plans.",
+      title: "Solution | InCentral",
+      description: "Explore InCentral fleet solutions.",
       path: planHref(planId),
     });
   }

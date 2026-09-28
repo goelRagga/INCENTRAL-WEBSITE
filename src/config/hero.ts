@@ -10,7 +10,7 @@ export const heroContent = {
     },
     secondary: {
       label: "Explore all solutions",
-      href: "#solutions",
+      href: "/solutions",
     },
   },
   intelligencePanel: {

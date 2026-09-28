@@ -5,11 +5,11 @@ import { siteConfig } from "@/config/site";
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = [
     "/",
-    "/plans",
-    "/plans/incert",
-    "/plans/insight",
-    "/plans/ingenious",
-    "/plans/invision-plus",
+    "/solutions",
+    "/solutions/incert",
+    "/solutions/insight",
+    "/solutions/ingenious",
+    "/solutions/invision-plus",
     "/compare-solutions",
     "/cart",
     "/ais-140-guide",

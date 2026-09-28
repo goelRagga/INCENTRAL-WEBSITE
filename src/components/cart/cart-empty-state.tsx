@@ -25,7 +25,7 @@ export function CartEmptyState() {
           Start by finding the right plan
         </h2>
         <p className="mt-2 mb-0 max-w-[480px] text-[15px] leading-[1.55] text-[#61747d]">
-          Check each vehicle type to see which plans are compatible.
+          Check each vehicle type to see which solutions are compatible.
         </p>
         <Link
           href="/#check-compatibility"

@@ -20,7 +20,7 @@ export function PlanWhySection({ copy }: PlanWhySectionProps) {
 
   return (
     <section
-      aria-label="Why this plan"
+      aria-label="Why this solution"
       className={cn(
         "mt-4 rounded-[14px] border px-4 py-3.5",
         copy.tone === "positive" && "border-[#d2eadf] bg-[#f4fbf8]",
@@ -30,7 +30,7 @@ export function PlanWhySection({ copy }: PlanWhySectionProps) {
     >
       <div className="mb-2.5">
         <span className="block text-[10px] font-semibold tracking-[0.08em] text-[#6a7880] uppercase">
-          Why this plan
+          Why this solution
         </span>
         <strong className="mt-1 block text-[14px] leading-snug font-semibold text-[#173844]">
           {copy.headline}

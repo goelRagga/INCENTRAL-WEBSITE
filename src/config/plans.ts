@@ -84,7 +84,7 @@ export type PlanProduct = {
   variants: PlanVariant[];
 };
 
-export const plansMega = {
+export const solutionsMega = {
   kicker: "Solutions",
   title: "Explore the solution range",
   description:
@@ -133,7 +133,7 @@ export const planShowcaseCards: PlanShowcaseCard[] = [
     accent: "incert",
     value: "Tracking",
     number: "01",
-    image: "/images/hero/hero-incert-concept.webp",
+    image: "/assets/images/hero-incert-concept.webp",
     name: "InCert",
     tagline: "Stay visible. Stay in control.",
     href: planHref("incert"),
@@ -148,7 +148,7 @@ export const planShowcaseCards: PlanShowcaseCard[] = [
     accent: "insight",
     value: "Fuel & repair",
     number: "02",
-    image: "/images/hero/hero-insight-concept.webp",
+    image: "/assets/images/hero-insight-concept.webp",
     name: "InSight",
     tagline: "See where fuel and vehicle costs are going.",
     href: planHref("insight"),
@@ -163,7 +163,7 @@ export const planShowcaseCards: PlanShowcaseCard[] = [
     accent: "ingenious",
     value: "Predictive health",
     number: "03",
-    image: "/images/hero/hero-ingenious-concept.webp",
+    image: "/assets/images/hero-ingenious-concept.webp",
     name: "InGenious",
     tagline: "Predict vehicle issues, manage fuel and automate fleet work.",
     href: planHref("ingenious"),
@@ -178,7 +178,7 @@ export const planShowcaseCards: PlanShowcaseCard[] = [
     accent: "invisionplus",
     value: "Predictive + video",
     number: "04",
-    image: "/images/hero/hero-invisionplus-concept.webp",
+    image: "/assets/images/hero-invisionplus-concept.webp",
     name: "InVision+",
     tagline:
       "Add AI-Driven Video Telematics to tracking, fuel and predictive vehicle health.",
@@ -191,9 +191,9 @@ export const planShowcaseCards: PlanShowcaseCard[] = [
   },
 ];
 
-export const plansSectionHome = {
+export const solutionsSectionHome = {
   id: "solutions",
-  titleId: "h139PlansTitle",
+  titleId: "h139SolutionsTitle",
   eyebrow: "Solutions",
   title: "Four solutions. See which ones fit your fleet.",
   description:
@@ -202,28 +202,28 @@ export const plansSectionHome = {
   gridLabel: "Intangles plans",
 } as const;
 
-export const plansPage = {
+export const solutionsPage = {
   metadata: {
-    title: "Plans | InCentral",
+    title: "Solutions | InCentral",
     description:
-      "Explore InCentral plans from tracking and fuel visibility to predictive vehicle health and AI-Driven Video Telematics.",
+      "Explore InCentral solutions from tracking and fuel visibility to predictive vehicle health and AI-Driven Video Telematics.",
   },
   hero: {
-    titleId: "plansPageTitle",
-    eyebrow: plansMega.kicker,
-    title: plansMega.title,
-    lead: plansMega.description,
-    primaryAction: plansMega.cta,
+    titleId: "solutionsPageTitle",
+    eyebrow: solutionsMega.kicker,
+    title: solutionsMega.title,
+    lead: solutionsMega.description,
+    primaryAction: solutionsMega.cta,
     secondaryAction: {
-      label: "AIS-140 Guide",
-      href: "/ais-140-guide",
+      label: "Compare solutions",
+      href: "/compare-solutions",
     },
   },
   showcase: {
-    titleId: "plansShowcaseTitle",
+    titleId: "solutionsShowcaseTitle",
     eyebrow: "Solutions",
     title: "Four solutions. See which ones fit your fleet.",
-    description: plansSectionHome.description,
+    description: solutionsSectionHome.description,
     cards: planShowcaseCards,
     gridLabel: "Intangles plans",
   },
@@ -232,7 +232,7 @@ export const plansPage = {
     title: "Not sure which solution fits your fleet?",
     description:
       "Tell us about your vehicles and needs. We will show the solutions that fit.",
-    primaryAction: plansMega.cta,
+    primaryAction: solutionsMega.cta,
     secondaryAction: { label: "Contact Support", href: "/support" },
   },
 } as const;
@@ -251,7 +251,7 @@ export function isPlanRouteId(id: string): id is PlanRouteId {
 }
 
 export function planHref(planId: PlanRouteId, line?: "ais" | "standard") {
-  const base = `/plans/${planId}`;
+  const base = `/solutions/${planId}`;
   if (!line) return base;
   return `${base}?line=${line}`;
 }

@@ -1,0 +1,17 @@
+---
+description: Edit only INCENTRAL-WEBSITE; v375 folder is read-only reference
+alwaysApply: true
+---
+
+# Workspace scope (InCentral migration)
+
+- **Develop and change code only in:**  
+  `/Users/vanshikasanan/Personal Projects/incentral/INCENTRAL-WEBSITE`
+
+- **Do not edit, delete, or commit changes in:**  
+  `/Users/vanshikasanan/Personal Projects/incentral/InCentral-Portal-v375-not-covered-red`  
+  (v375 portal — **reference only** for copy, layout, assets, and behavior when migrating to Next.js.)
+
+- **Using the reference:** Read v375 HTML/CSS/JS and images to parity-check; port behavior into INCENTRAL-WEBSITE with Tailwind/shadcn and app config. Copy assets into `INCENTRAL-WEBSITE/public/` when needed — never mutate the v375 tree.
+
+- **Default dev server / build:** Run from `INCENTRAL-WEBSITE` (e.g. `npm run dev` there).
