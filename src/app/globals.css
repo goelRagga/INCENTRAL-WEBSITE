@@ -3693,7 +3693,31 @@ body[data-product-family="incert"] .pcmp-table thead [data-plan="incert"],body[d
   .pcmp-camera-tab{min-height:64px;padding:11px 12px}
 }
 
-
+/* Plan finder — added-to-cart actions (portal h152-success-actions) */
+.plan-finder-cart-success-actions{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:12px;
+  align-items:stretch;
+}
+.plan-finder-cart-success-actions button,
+.plan-finder-cart-success-actions a{
+  min-width:0;
+  padding-inline:16px;
+  text-align:center;
+}
+.plan-finder-cart-success-another{
+  white-space:normal;
+  line-height:1.25;
+}
+.plan-finder-cart-success-cart{
+  white-space:nowrap;
+}
+@media(max-width:760px){
+  .plan-finder-cart-success-actions{
+    grid-template-columns:1fr;
+  }
+}
 
 /* PDP portal typography overrides (from pdp-portal-consistency) */
 html body .h132-badge,

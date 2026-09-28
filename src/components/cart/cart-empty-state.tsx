@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PlanFinderVehicleStepLink } from "@/components/plan-finder/plan-finder-vehicle-step-link";
 import { footerSupport } from "@/config/footer";
 
 export function CartEmptyState() {
@@ -19,9 +20,9 @@ export function CartEmptyState() {
         <h2>Start by finding the right plan</h2>
         <p>Check each vehicle type to see which plans are compatible.</p>
         <div className="cart-v165-empty-actions">
-          <Link className="btn primary cart-v165-empty-primary" href="/#check-compatibility">
+          <PlanFinderVehicleStepLink className="btn primary cart-v165-empty-primary">
             Find the right solution <span aria-hidden="true">→</span>
-          </Link>
+          </PlanFinderVehicleStepLink>
         </div>
       </div>
 

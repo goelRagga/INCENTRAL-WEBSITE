@@ -13,6 +13,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useConfiguredCart } from "@/hooks/use-configured-cart";
 import { cn } from "@/lib/utils";
 
+import { PlanFinderVehicleStepLink } from "@/components/plan-finder/plan-finder-vehicle-step-link";
+
 import { CartEmptyState } from "./cart-empty-state";
 import { CartLineItem } from "./cart-line-item";
 
@@ -120,9 +122,9 @@ export function CartPageContent() {
                       <span>Order items</span>
                       <h2 id="cart-v165-list-title">Your cart</h2>
                     </div>
-                    <Link className="cart-v165-add" href="/#check-compatibility">
+                    <PlanFinderVehicleStepLink className="cart-v165-add">
                       Check another vehicle type
-                    </Link>
+                    </PlanFinderVehicleStepLink>
                   </header>
 
                   <div className="cart-v165-list">
