@@ -53,9 +53,13 @@ export function AuthPage() {
     [searchParams]
   );
 
+  const expired = searchParams.get("expired") === "1";
+
   const [activeTab, setActiveTab] = useState<AuthTab>(initialMode);
   const [submitting, setSubmitting] = useState(false);
-  const [signInResult, setSignInResult] = useState<FormResult>(null);
+  const [signInResult, setSignInResult] = useState<FormResult>(
+    expired ? { tone: "bad", message: "Your session has expired. Please sign in again." } : null
+  );
   const [createResult, setCreateResult] = useState<FormResult>(null);
 
   useEffect(() => { setActiveTab(initialMode); }, [initialMode]);

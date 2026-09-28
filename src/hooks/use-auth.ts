@@ -21,15 +21,13 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    // Hydrate from sessionStorage first for instant render
+    // Hydrate from sessionStorage for instant render, then always verify cookie with server
     const cached = readAuthSession();
     if (cached) {
       setSession(cached);
       setReady(true);
-      return;
     }
 
-    // No cache — check if cookie session is still alive
     api.auth.me()
       .then((user: Record<string, unknown>) => {
         const s: AuthSession = {
@@ -46,7 +44,11 @@ export function useAuth() {
         setSession(s);
       })
       .catch(() => {
-        // No active session
+        // Cookie gone or expired — clear stale local session
+        if (readAuthSession()) {
+          clearAuthSession();
+          setSession(null);
+        }
       })
       .finally(() => setReady(true));
   }, []);
