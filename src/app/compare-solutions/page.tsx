@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 import { Container } from "@/components/common/container";
-import { planProducts } from "@/config/plans";
+import {
+  CompareSolutionsProgression,
+  SolutionComparisonSection,
+} from "@/components/compare-solutions/solution-comparison-section";
 import { constructMetadata } from "@/lib/metadata";
 
 export const metadata = constructMetadata({
@@ -10,13 +13,6 @@ export const metadata = constructMetadata({
     "Compare InCentral fleet intelligence solutions by capability. Check vehicle compatibility to see available options and pricing.",
   path: "/compare-solutions",
 });
-
-const progression = [
-  { step: "01 · Tracking", productId: "incert" as const },
-  { step: "02 · Fuel & repair", productId: "insight" as const },
-  { step: "03 · Predictive health", productId: "ingenious" as const },
-  { step: "04 · Predictive + video", productId: "invision-plus" as const },
-];
 
 export default function CompareSolutionsPage() {
   return (
@@ -47,7 +43,7 @@ export default function CompareSolutionsPage() {
               Check compatibility
             </Link>
             <a
-              href="#compare-progression"
+              href="#compare-solutions-main"
               className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#c9d5dc] bg-white px-5 text-[14px] font-semibold text-[#15242d] no-underline hover:bg-[#f6f7f7]"
             >
               Compare capabilities
@@ -59,51 +55,23 @@ export default function CompareSolutionsPage() {
         </Container>
       </section>
 
-      <section aria-label="Solution progression" id="compare-progression" className="py-12">
-        <Container>
-          <div className="grid gap-4 min-[900px]:grid-cols-2 min-[1200px]:grid-cols-4">
-            {progression.map(({ step, productId }) => {
-              const product = planProducts.find((p) => p.id === productId);
-              if (!product) return null;
-              return (
-                <article
-                  key={productId}
-                  className="flex min-h-full flex-col rounded-[18px] border border-[#dde5e9] bg-white p-5 shadow-[0_8px_24px_rgba(24,40,51,0.04)]"
-                >
-                  <span className="text-[11px] font-bold tracking-[0.06em] text-[#6a7880] uppercase">
-                    {step}
-                  </span>
-                  <h2 className="mt-2 mb-0 text-[22px] font-semibold tracking-[-0.03em] text-[#163541]">
-                    {product.name}
-                  </h2>
-                  <p className="mt-2 mb-0 flex-1 text-[13.5px] leading-[1.5] text-[#61747d]">
-                    {product.description}
-                  </p>
-                  <Link
-                    href={product.href}
-                    className="mt-4 inline-flex text-[13px] font-semibold text-[#1767ad] no-underline hover:underline"
-                  >
-                    View {product.name} →
-                  </Link>
-                </article>
-              );
-            })}
-          </div>
-        </Container>
-      </section>
+      <CompareSolutionsProgression />
 
-      <section className="border-t border-[#e3e9ec] bg-[#f8fafb] py-12">
-        <Container className="text-center">
-          <p className="mx-auto mb-0 max-w-[560px] text-[15px] leading-[1.55] text-[#61747d]">
-            Found the capabilities you need? Check your vehicle to see which solutions are
-            compatible and reveal pricing.
-          </p>
-          <Link
-            href="/#check-compatibility"
-            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-inc-blue bg-inc-blue px-6 text-[14px] font-semibold text-white no-underline hover:bg-inc-blue-dark"
-          >
-            Check compatibility &amp; price
-          </Link>
+      <section aria-label="Solution comparison table" className="border-t border-[#e3e9ec] bg-white">
+        <SolutionComparisonSection mode="standalone" />
+        <Container className="pb-12">
+          <div className="mt-[22px] flex items-center justify-between gap-6 rounded-[15px] border border-[#dae3e8] bg-[#f8fafb] px-[22px] py-5 max-[960px]:flex-col max-[960px]:items-start max-[620px]:gap-4">
+            <p className="m-0 max-w-[720px] text-[14px] leading-[1.5] text-[#60737c]">
+              Found the capabilities you need? Check your vehicle to see which solutions are
+              compatible and reveal pricing.
+            </p>
+            <Link
+              href="/#check-compatibility"
+              className="inline-flex shrink-0 items-center justify-center rounded-full border border-inc-blue bg-inc-blue px-6 py-2.5 text-[14px] font-semibold whitespace-nowrap text-white no-underline hover:bg-inc-blue-dark max-[620px]:w-full max-[620px]:min-h-11"
+            >
+              Check compatibility &amp; price
+            </Link>
+          </div>
         </Container>
       </section>
     </main>

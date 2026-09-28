@@ -10,6 +10,9 @@ import {
 import { planMeta, planValueLabel, variantLabel } from "@/lib/plan-finder/plan-meta";
 import { planRouteToFamily } from "@/lib/plans/plan-route-map";
 
+import { CustomerStoriesSection } from "@/components/testimonials/customer-stories-section";
+import { planCustomerStories } from "@/config/customer-stories";
+
 import { PlanHighlightsSection } from "./plan-highlights-section";
 import { PlanPdpHero } from "./plan-pdp-hero";
 import { PlanPdpLayout } from "./plan-pdp-layout";
@@ -59,6 +62,15 @@ export function PlanPdpPage({ planId, line = "ais" }: PlanPdpPageProps) {
         planName={meta.name}
         features={meta.key}
         bestFor={planBestFor[planId]}
+      />
+
+      <CustomerStoriesSection
+        variant="plan-pdp"
+        id="customer-proof"
+        titleId={planCustomerStories[planId].titleId}
+        title={planCustomerStories[planId].title}
+        description={planCustomerStories[planId].description}
+        stories={planCustomerStories[planId].stories}
       />
 
       <CtaBand
