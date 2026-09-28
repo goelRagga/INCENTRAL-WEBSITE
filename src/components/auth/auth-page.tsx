@@ -229,11 +229,12 @@ export function AuthPage() {
                 <p>{signIn.description}</p>
 
                 <div className="field">
-                  <FieldLabel htmlFor="signin-identity">Email or mobile number</FieldLabel>
+                  <FieldLabel htmlFor="signin-identity">Email address</FieldLabel>
                   <input
                     id="signin-identity"
                     name="identity"
-                    autoComplete="username"
+                    type="email"
+                    autoComplete="email"
                     required
                   />
                 </div>

@@ -2,7 +2,7 @@
 export const accountUseMockData = false;
 
 /** When true, support/profile saves and invoice PDF placeholders use in-memory mock handlers. */
-export const accountUseMockMutations = true;
+export const accountUseMockMutations = false;
 
 export const accountPage = {
   metadata: {

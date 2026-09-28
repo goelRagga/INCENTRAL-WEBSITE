@@ -50,10 +50,14 @@ export const api = {
     me:      ()  => apiFetch('/auth/me'),
   },
   account: {
-    profile:   ()    => apiFetch('/account/profile'),
-    orders:    ()    => apiFetch('/account/orders'),
-    order:     (id)  => apiFetch(`/account/orders/${id}`),
-    addresses: ()    => apiFetch('/account/addresses'),
+    profile:       ()       => apiFetch('/account/profile'),
+    updateProfile: (b)      => apiFetch('/account/profile', { method: 'PUT', body: JSON.stringify(b) }),
+    orders:        ()       => apiFetch('/account/orders'),
+    order:         (id)     => apiFetch(`/account/orders/${id}`),
+    addresses:     ()       => apiFetch('/account/addresses'),
+    updateAddress: (id, b)  => apiFetch(`/account/addresses/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
+    invoices:      ()       => apiFetch('/account/invoices'),
+    payments:      ()       => apiFetch('/account/payments'),
   },
   coupons: {
     apply: (b) => apiFetch('/coupons/apply', { method: 'POST', body: JSON.stringify(b) }),

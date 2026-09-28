@@ -140,20 +140,60 @@ export function mapApiOrders(ordersRaw: unknown): AccountOrder[] {
   });
 }
 
+export function mapApiInvoices(raw: unknown): import("@/lib/account/types").AccountInvoice[] {
+  const list = Array.isArray(raw) ? raw : ((raw as { invoices?: unknown[] })?.invoices ?? []);
+  return list.map((row) => {
+    const r = row as Record<string, unknown>;
+    return {
+      id: String(r.invoice_id ?? r.id ?? ""),
+      number: String(r.invoice_number ?? r.number ?? ""),
+      date: String(r.date ?? r.created_time ?? ""),
+      status: String(r.status ?? ""),
+      total: Number(r.total ?? 0),
+      balance: Number(r.balance ?? 0),
+      orderNumber: r.salesorder_number ? String(r.salesorder_number) : undefined,
+    };
+  });
+}
+
+export function mapApiPayments(raw: unknown): import("@/lib/account/types").AccountPayment[] {
+  const list = Array.isArray(raw) ? raw : ((raw as { customerpayments?: unknown[] })?.customerpayments ?? []);
+  return list.map((row) => {
+    const r = row as Record<string, unknown>;
+    return {
+      id: String(r.payment_id ?? r.id ?? ""),
+      date: String(r.date ?? ""),
+      mode: String(r.payment_mode ?? r.mode ?? ""),
+      amount: Number(r.amount ?? 0),
+      reference: r.reference_number ? String(r.reference_number) : undefined,
+      invoiceNumber: r.invoice_number ? String(r.invoice_number) : undefined,
+    };
+  });
+}
+
 export function buildAccountBootstrapSources(input: {
   profile: Record<string, unknown> | null;
   orders: unknown;
   addresses?: unknown;
+  invoices?: unknown;
+  payments?: unknown;
   session?: { name?: string; email?: string };
   profileFromApi: boolean;
   ordersFromApi: boolean;
+  invoicesFromApi?: boolean;
+  paymentsFromApi?: boolean;
 }): AccountBootstrapSources {
   return {
     profile: input.profileFromApi
       ? mapApiProfile(input.profile, input.session, input.addresses)
       : null,
     orders: input.ordersFromApi ? mapApiOrders(input.orders) : [],
+    invoices: input.invoicesFromApi ? mapApiInvoices(input.invoices) : undefined,
+    payments: input.paymentsFromApi ? mapApiPayments(input.payments) : undefined,
     profileFromApi: input.profileFromApi,
     ordersFromApi: input.ordersFromApi,
+    invoicesFromApi: input.invoicesFromApi,
+    paymentsFromApi: input.paymentsFromApi,
+    ticketsFromApi: false, // no tickets backend endpoint yet — always use fallback
   };
 }
