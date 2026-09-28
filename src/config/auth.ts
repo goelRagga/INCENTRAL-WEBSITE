@@ -42,6 +42,10 @@ export const authPage = {
   },
   demoAuthEnabled: true,
   accountHref: "/account",
+  /** Account overview panel (dashboard home). */
+  accountOverviewHref: "/account#overview",
+  /** Signed-in support requests live in My InCentral, not the public /support page. */
+  accountSupportHref: "/account#support",
   signInHref: "/sign-in?mode=login",
 } as const;
 

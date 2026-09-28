@@ -4,7 +4,7 @@ export function getHeaderAccountLink(isAuthenticated: boolean) {
   if (isAuthenticated) {
     return {
       label: "My InCentral",
-      href: authPage.accountHref,
+      href: authPage.accountOverviewHref,
       ariaLabel: "Open My InCentral account dashboard",
     };
   }
@@ -18,6 +18,18 @@ export function getHeaderAccountLink(isAuthenticated: boolean) {
 
 export function getOrdersLink(isAuthenticated: boolean) {
   return isAuthenticated
-    ? authPage.accountHref
+    ? `${authPage.accountHref}#orders`
     : `${authPage.signInHref}&next=orders`;
+}
+
+/** Footer / account menu: Sign In when signed out, Dashboard when signed in. */
+export function getFooterDashboardLink(isAuthenticated: boolean) {
+  if (isAuthenticated) {
+    return { label: "Dashboard" as const, href: authPage.accountOverviewHref };
+  }
+  return { label: "Sign In" as const, href: authPage.signInHref };
+}
+
+export function getSupportNavHref(isAuthenticated: boolean) {
+  return isAuthenticated ? authPage.accountSupportHref : "/support";
 }

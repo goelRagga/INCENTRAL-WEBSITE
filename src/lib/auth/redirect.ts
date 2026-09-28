@@ -9,7 +9,7 @@ export function resolveAuthRedirect(
   }
 
   if (next === "orders") {
-    return authPage.accountHref;
+    return `${authPage.accountHref}#orders`;
   }
 
   if (next && next.startsWith("/") && !next.startsWith("//")) {

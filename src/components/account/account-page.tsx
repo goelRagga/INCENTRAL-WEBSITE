@@ -9,7 +9,7 @@ import {
   useState,
   type MouseEvent,
 } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Container } from "@/components/common/container";
 import { AccountAddressDialog } from "@/components/account/account-address-dialog";
@@ -36,8 +36,10 @@ import {
   accountUseMockMutations,
   type AccountPanelId,
 } from "@/config/account";
+import { authPage } from "@/config/auth";
 import { useAuth } from "@/hooks/use-auth";
 import { loadAccountBootstrap } from "@/lib/account/load-account-bootstrap";
+import { loadAccountMockBootstrap } from "@/lib/account/mock-data";
 import {
   formatAddressLines,
   formatDate,
@@ -59,12 +61,15 @@ function panelFromHash(hash: string): AccountPanelId {
 
 export function AccountPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { ready, isAuthenticated, session, signOut } = useAuth();
   const { intro } = accountPage;
   const signedOut = useRef(false);
   const { showToast, toastPortal } = useAccountToast();
 
-  const [bootstrap, setBootstrap] = useState<AccountBootstrap | null>(null);
+  const [bootstrap, setBootstrap] = useState<AccountBootstrap>(() =>
+    loadAccountMockBootstrap()
+  );
   const [activePanel, setActivePanel] = useState<AccountPanelId>("overview");
   const [orderFilter, setOrderFilter] = useState<"all" | "active" | "past">("all");
   const [orderQuery, setOrderQuery] = useState("");
@@ -77,16 +82,31 @@ export function AccountPage() {
 
   useEffect(() => {
     if (ready && !isAuthenticated && !signedOut.current) {
-      router.replace("/sign-in?next=/account");
+      router.replace(
+        `/sign-in?next=${encodeURIComponent(authPage.accountOverviewHref)}`
+      );
     }
   }, [ready, isAuthenticated, router]);
 
-  useEffect(() => {
-    const sync = () => setActivePanel(panelFromHash(window.location.hash));
-    sync();
-    window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
+  const syncPanelFromHash = useCallback(() => {
+    setActivePanel(panelFromHash(window.location.hash));
   }, []);
+
+  useEffect(() => {
+    syncPanelFromHash();
+    window.addEventListener("hashchange", syncPanelFromHash);
+    window.addEventListener("popstate", syncPanelFromHash);
+    return () => {
+      window.removeEventListener("hashchange", syncPanelFromHash);
+      window.removeEventListener("popstate", syncPanelFromHash);
+    };
+  }, [syncPanelFromHash]);
+
+  useEffect(() => {
+    if (pathname === "/account") {
+      syncPanelFromHash();
+    }
+  }, [pathname, syncPanelFromHash]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -104,8 +124,10 @@ export function AccountPage() {
 
   const goToPanel = useCallback((panel: AccountPanelId) => {
     setActivePanel(panel);
-    const hash = panel === "overview" ? "" : `#${panel}`;
-    window.history.replaceState(null, "", `/account${hash}`);
+    const nextUrl = `/account#${panel}`;
+    if (window.location.hash !== `#${panel}`) {
+      window.history.replaceState(null, "", nextUrl);
+    }
   }, []);
 
   const handleSignOut = useCallback(async () => {
@@ -306,15 +328,7 @@ export function AccountPage() {
   const recentOrder = orders[0];
 
   if (!ready || !isAuthenticated) {
-    return (
-      <main id="main" className="page-shell account295">
-        <section className="a295-body">
-          <Container>
-            <div className="a295-loading">Loading your account</div>
-          </Container>
-        </section>
-      </main>
-    );
+    return null;
   }
 
   return (
@@ -342,10 +356,7 @@ export function AccountPage() {
 
       <section className="a295-body">
         <Container>
-          {!bootstrap ? (
-            <div className="a295-loading">Loading your account</div>
-          ) : (
-            <div className="a295-layout">
+          <div className="a295-layout">
               <aside className="a295-sidebar">
                 <nav aria-label="Account navigation" className="a295-nav">
                   {(
@@ -987,7 +998,6 @@ export function AccountPage() {
                 </section>
               </div>
             </div>
-          )}
         </Container>
       </section>
 

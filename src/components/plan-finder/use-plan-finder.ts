@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { planFinderSection } from "@/config/plan-finder";
+import { applyCatalogPriceRows } from "@/lib/commerce/catalog-prices";
 import { normalizeConfiguredLine } from "@/lib/commerce/installation";
+import { api } from "@/lib/backend";
 
 import {
   CONFIGURATOR_STORAGE_KEY,
@@ -124,11 +127,30 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     summary: string;
   } | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [, setPriceEpoch] = useState(0);
 
   useEffect(() => {
     setState(loadState(storageKey));
     setHydrated(true);
   }, [storageKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.catalog.products();
+        if (!cancelled) {
+          applyCatalogPriceRows(data);
+          setPriceEpoch((n) => n + 1);
+        }
+      } catch {
+        /* static catalog prices remain */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -230,19 +252,20 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     const count = result.recommendations.length;
     const hasNeeds = expandedNeeds.length > 0;
     const hasFullNeedsMatch = !hasNeeds || result.needsFullyMet;
+    const intro = planFinderSection.resultsStep.resultsIntro;
 
     if (count === 1) {
       return hasNeeds && !hasFullNeedsMatch
-        ? "This solution fits your vehicle, but it does not include everything you selected."
-        : "This is the only solution that fits these vehicle details.";
+        ? "This plan fits your vehicle, but it does not include everything you selected."
+        : `${intro} This is the only plan that fits these vehicle details.`;
     }
     if (hasNeeds && hasFullNeedsMatch) {
-      return "All solutions shown fit your vehicle. Recommended is the lowest compatible solution that covers everything you selected.";
+      return `${intro} Recommended is the lowest compatible plan that covers everything you selected.`;
     }
     if (hasNeeds) {
-      return "These solutions fit your vehicle, but none includes everything you selected.";
+      return "These plans fit your vehicle, but none includes everything you selected.";
     }
-    return "All solutions shown fit these vehicle details.";
+    return intro;
   }, [result, expandedNeeds]);
 
   const availabilityNotices = useMemo(() => {
@@ -275,9 +298,9 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
   }, [result, expandedNeeds, state.aisRequired, state.stateId]);
 
   const resultsTitle = useMemo(() => {
-    if (!result || result.status !== "VERIFIED") return "Solutions that fit";
+    if (!result || result.status !== "VERIFIED") return "Plans that fit";
     const count = result.recommendations.length;
-    return count === 1 ? "1 solution fits" : `${count} solutions fit`;
+    return count === 1 ? "1 plan fits" : `${count} plans fit`;
   }, [result]);
 
   const update = useCallback((patch: Partial<ConfiguratorState>) => {

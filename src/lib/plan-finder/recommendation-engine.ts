@@ -150,6 +150,12 @@ export const PRODUCTS = {
 
 export type Product = (typeof PRODUCTS)[keyof typeof PRODUCTS];
 
+let productPriceOverrides: Record<string, number> = {};
+
+export function setProductPriceOverrides(overrides: Record<string, number>) {
+  productPriceOverrides = { ...overrides };
+}
+
 export type PlanBadgeKind =
   | "BEST_VALUE"
   | "CLOSEST_MATCH"
@@ -173,7 +179,11 @@ export function productFor(
 ): Product | null {
   const suffix = aisRequired ? "ais-140" : "standard";
   const prefix = family === "invisionplus" ? "invision-plus" : family;
-  return PRODUCTS[`${prefix}-${suffix}` as keyof typeof PRODUCTS] ?? null;
+  const sku = `${prefix}-${suffix}` as keyof typeof PRODUCTS;
+  const base = PRODUCTS[sku];
+  if (!base) return null;
+  const price = productPriceOverrides[base.sku] ?? base.price;
+  return price === base.price ? base : ({ ...base, price } as Product);
 }
 
 export function normalizeNeeds(needs: string[]): NeedKey[] {

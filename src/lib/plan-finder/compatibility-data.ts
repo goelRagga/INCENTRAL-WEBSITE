@@ -222,6 +222,37 @@ export const canonicalMake = (segmentKey: string, makeKey: string) =>
 export const resolveOem = (segmentKey: string, makeKey: string) =>
   vehicleData[segmentKey]?.oems?.[canonicalMake(segmentKey, makeKey)] || null;
 
+export type PartnerInstallInfo = {
+  brand: string;
+  platform: string;
+  key: string;
+  make: string;
+  segment: string;
+  emission: string;
+};
+
+/** BS-VI InGenious installs via OEM telematics partner (Mahindra iMAXX, Force iPULSe, etc.). */
+export function partnerInstallFor(
+  segmentKey: string,
+  makeKey: string,
+  emission: string
+): PartnerInstallInfo | null {
+  const manufacturer = resolveOem(segmentKey, makeKey);
+  if (!manufacturer || emission !== "BS-VI" || !manufacturer.partnerPlatform) {
+    return null;
+  }
+  const compatible = manufacturer.emissions?.[emission] || [];
+  if (!compatible.includes("ingenious")) return null;
+  return {
+    brand: manufacturer.partnerBrand || manufacturer.label,
+    platform: manufacturer.partnerPlatform,
+    key: manufacturer.partnerKey || "",
+    make: canonicalMake(segmentKey, makeKey),
+    segment: segmentKey,
+    emission,
+  };
+}
+
 export const INDIA_REGIONS = [
   { id: "andhra-pradesh", label: "Andhra Pradesh", type: "state" },
   { id: "arunachal-pradesh", label: "Arunachal Pradesh", type: "state" },

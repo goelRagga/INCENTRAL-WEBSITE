@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { authPage } from "@/config/auth";
+import { navigateAccountPanelHref } from "@/lib/account/account-panel-nav";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -112,7 +113,7 @@ export function HeaderAccountMenu() {
     >
       <Link
         ref={triggerRef}
-        href={authPage.accountHref}
+        href={authPage.accountOverviewHref}
         aria-label="Open My InCentral account menu"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -136,13 +137,31 @@ export function HeaderAccountMenu() {
         role="menu"
         hidden={!open}
       >
-        <Link href={authPage.accountHref} role="menuitem" onClick={() => close(false)}>
+        <Link
+          href={authPage.accountOverviewHref}
+          role="menuitem"
+          onClick={(e) => {
+            e.preventDefault();
+            close(false);
+            if (navigateAccountPanelHref(authPage.accountOverviewHref) === "navigate") {
+              router.push(authPage.accountOverviewHref);
+            }
+          }}
+        >
           <span className="inc-account-menu-icon">
             <DashboardIcon />
           </span>
           <span>Dashboard</span>
         </Link>
-        <Link href="/support" role="menuitem" onClick={() => close(false)}>
+        <Link
+          href={authPage.accountSupportHref}
+          role="menuitem"
+          onClick={(e) => {
+            e.preventDefault();
+            close(false);
+            router.push(authPage.accountSupportHref);
+          }}
+        >
           <span className="inc-account-menu-icon">
             <SupportIcon />
           </span>
@@ -186,10 +205,26 @@ export function MobileAccountMenu({ onNavigate }: MobileAccountMenuProps) {
         </span>
       </summary>
       <div className="inc-mobile-account-panel">
-        <Link href={authPage.accountHref} onClick={onNavigate}>
+        <Link
+          href={authPage.accountOverviewHref}
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate();
+            if (navigateAccountPanelHref(authPage.accountOverviewHref) === "navigate") {
+              router.push(authPage.accountOverviewHref);
+            }
+          }}
+        >
           Dashboard
         </Link>
-        <Link href="/support" onClick={onNavigate}>
+        <Link
+          href={authPage.accountSupportHref}
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate();
+            router.push(authPage.accountSupportHref);
+          }}
+        >
           Support
         </Link>
         <button type="button" data-inc-account-logout="" onClick={handleLogout}>

@@ -35,11 +35,13 @@ export const planFinderSection = {
   resultsStep: {
     summaryLabel: "Vehicle details",
     editLabel: "Edit",
-    plansKicker: "Solutions that fit",
-    planRailLabel: "Solutions that fit",
+    plansKicker: "Plans that fit",
+    planRailLabel: "Plans that fit",
     planRailHint: "Choose a solution to review the fit and price.",
+    resultsIntro:
+      "Select a solution to review what it includes and see the price for your vehicle.",
     unverifiedMessage:
-      "We could not find a solution for these vehicle details. Check the details or contact us.",
+      "We could not find a plan for these vehicle details. Check the details or contact us.",
   },
   commerce: {
     aisHeadline: "Choose AIS-140 Certified or Standard",
@@ -61,7 +63,7 @@ export const needOptions: NeedOptionConfig[] = [
     value: "tracking",
     kind: "tracking",
     title: "Track vehicles and manage trips",
-    description: "Location, trips, geofencing and core driver alerts.",
+    description: "Know where vehicles are, where they stop and how trips run.",
   },
   {
     id: "fuel",

@@ -11,7 +11,7 @@ import { headerActions, primaryNavLinks } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { useAuth } from "@/hooks/use-auth";
 import { useConfiguredCart } from "@/hooks/use-configured-cart";
-import { getHeaderAccountLink } from "@/lib/auth/nav-links";
+import { getHeaderAccountLink, getSupportNavHref } from "@/lib/auth/nav-links";
 import { isNavLinkActive } from "@/lib/navigation-utils";
 import { cn } from "@/lib/utils";
 
@@ -177,17 +177,23 @@ export function SiteHeader() {
               />
             </li>
 
-            {primaryNavLinks.map((link) => (
-              <li key={link.id}>
-                <NavLink
-                  href={link.href}
-                  data-nav={link.id}
-                  active={isNavLinkActive(pathname, link.href)}
-                >
-                  {link.label}
-                </NavLink>
-              </li>
-            ))}
+            {primaryNavLinks.map((link) => {
+              const href =
+                link.id === "support"
+                  ? getSupportNavHref(isAuthenticated)
+                  : link.href;
+              return (
+                <li key={link.id}>
+                  <NavLink
+                    href={href}
+                    data-nav={link.id}
+                    active={isNavLinkActive(pathname, href)}
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
