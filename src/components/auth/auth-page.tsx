@@ -45,7 +45,7 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: ReactNod
 
 type FormResult = { tone: "good" | "bad"; message: string } | null;
 
-export function AuthPage({ onSuccess }: { onSuccess?: () => void } = {}) {
+export function AuthPage({ onSuccess, isModal = false }: { onSuccess?: () => void; isModal?: boolean } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const signInFormRef = useRef<HTMLFormElement>(null);
@@ -82,11 +82,13 @@ export function AuthPage({ onSuccess }: { onSuccess?: () => void } = {}) {
       setActiveTab(tab);
       setSignInResult(null);
       setCreateResult(null);
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("mode", tab === "create" ? "create" : "login");
-      router.replace(`/sign-in?${params.toString()}`, { scroll: false });
+      if (!isModal) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("mode", tab === "create" ? "create" : "login");
+        router.replace(`/sign-in?${params.toString()}`, { scroll: false });
+      }
     },
-    [router, searchParams]
+    [router, searchParams, isModal]
   );
 
   const finishAuth = useCallback(

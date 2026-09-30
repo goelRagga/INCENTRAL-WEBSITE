@@ -3,16 +3,53 @@ import { setProductPriceOverrides } from "@/lib/plan-finder/recommendation-engin
 
 let zohoProducts: unknown[] = [];
 
+// Zoho product name → internal family key (matches PRODUCTS in recommendation-engine)
+const PRODUCT_NAME_TO_FAMILY: Record<string, string> = {
+  incert: "incert",
+  insight: "insight",
+  ingenious: "ingenious",
+  "invision+": "invision-plus",
+};
+
+function deriveInternalSku(productName: string, variantName: string): string | null {
+  const family = PRODUCT_NAME_TO_FAMILY[productName.toLowerCase().trim()];
+  if (!family) return null;
+  const isAis = variantName.toLowerCase().includes("ais");
+  return `${family}-${isAis ? "ais-140" : "standard"}`;
+}
+
+// Zoho short descriptions keyed by internal family name
+let zohoDescriptions: Record<string, string> = {};
+
+/** Returns plain text (HTML tags stripped) from Zoho's product_short_description, or null. */
+export function getZohoDescription(family: string): string | null {
+  const html = zohoDescriptions[family];
+  if (!html) return null;
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || null;
+}
+
 export function storeCatalogProducts(rows: unknown[]): void {
   zohoProducts = rows.filter((p: unknown) => {
     const product = p as Record<string, unknown>;
-    return product.status === "active" && product.show_in_storefront === true;
+    return product.status === "active" && product.show_in_storefront !== false;
   });
+
+  // Index short descriptions by family key
+  const descs: Record<string, string> = {};
+  for (const p of zohoProducts) {
+    const product = p as Record<string, unknown>;
+    const name = String(product.name ?? product.product_name ?? "");
+    const family = PRODUCT_NAME_TO_FAMILY[name.toLowerCase().trim()];
+    const desc = String(product.product_short_description ?? product.description ?? "");
+    if (family && desc) descs[family] = desc;
+  }
+  zohoDescriptions = descs;
+
   if (process.env.NODE_ENV !== "production") {
     // eslint-disable-next-line no-console
     console.log(
       "[incentral] Zoho catalog cached:",
-      rows.map((p: unknown) => {
+      zohoProducts.map((p: unknown) => {
         const product = p as Record<string, unknown>;
         return {
           name: product.name ?? product.product_name,
@@ -48,7 +85,7 @@ export function findZohoVariantId(planName: string, aisRequired: boolean): strin
   return undefined;
 }
 
-/** Map live catalog API rows to plan-finder SKUs; ignore unknown rows. */
+/** Map live Zoho catalog rows to internal plan-finder SKUs by product name + variant name. */
 export function applyCatalogPriceRows(rows: unknown): void {
   const list = Array.isArray(rows)
     ? rows
@@ -61,30 +98,34 @@ export function applyCatalogPriceRows(rows: unknown): void {
   for (const row of list) {
     if (!row || typeof row !== "object") continue;
     const record = row as Record<string, unknown>;
+    const productName = String(record.name ?? record.product_name ?? "");
     const variants = Array.isArray(record.variants) ? record.variants : [];
 
     if (variants.length > 0) {
-      // Zoho Admin API: prices are on variants, not product root
       for (const v of variants) {
         const variant = v as Record<string, unknown>;
-        const sku = String(variant.sku ?? "").trim().toLowerCase();
+        const variantName = String(variant.name ?? variant.variant_name ?? "");
+        const internalSku = deriveInternalSku(productName, variantName);
         const price = Number(
           variant.rate ?? variant.price ?? variant.selling_price ?? variant.unit_price
         );
-        if (!sku || !Number.isFinite(price) || price <= 0) continue;
-        overrides[sku] = price;
+        if (!internalSku || !Number.isFinite(price) || price <= 0) continue;
+        overrides[internalSku] = price;
       }
     } else {
-      // Fallback: product-level SKU/price
-      const sku = String(
-        record.sku ?? record.item_sku ?? record.product_sku ?? ""
-      ).trim().toLowerCase();
+      // Single-variant product: derive from product name, assume standard
+      const internalSku = deriveInternalSku(productName, "standard");
       const price = Number(
         record.price ?? record.rate ?? record.unit_price ?? record.selling_price
       );
-      if (!sku || !Number.isFinite(price) || price <= 0) continue;
-      overrides[sku] = price;
+      if (!internalSku || !Number.isFinite(price) || price <= 0) continue;
+      overrides[internalSku] = price;
     }
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line no-console
+    console.log("[incentral] Price overrides resolved:", overrides);
   }
 
   if (Object.keys(overrides).length === 0) return;

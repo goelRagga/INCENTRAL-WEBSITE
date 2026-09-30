@@ -147,7 +147,9 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     summary: string;
   } | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [, setPriceEpoch] = useState(0);
+  const [priceEpoch, setPriceEpoch] = useState(0);
+  const [catalogReady, setCatalogReady] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(false);
 
   useEffect(() => {
     if (consumePlanFinderResetFlag()) {
@@ -161,27 +163,7 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     setHydrated(true);
   }, [storageKey]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const planData = await api.catalog.planProducts();
-        if (!cancelled) {
-          const planList = Array.isArray(planData) ? planData : [];
-          if (planList.length > 0) {
-            applyCatalogPriceRows(planList);
-            storeCatalogProducts(planList);
-          }
-          setPriceEpoch((n) => n + 1);
-        }
-      } catch {
-        /* static catalog prices remain */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // No on-mount fetch — prices are fetched fresh on every step-1→step-2 transition.
 
   useEffect(() => {
     if (!hydrated) return;
@@ -195,6 +177,7 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
 
   const result: RecommendationResult | null = useMemo(() => {
     if (state.step !== 2) return null;
+    void priceEpoch; // recompute when live prices arrive from Zoho
     return recommendGroup({
       segment: state.segment,
       make: state.make,
@@ -204,7 +187,7 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
       quantity: state.quantity,
       needs: expandedNeeds,
     });
-  }, [state, expandedNeeds]);
+  }, [state, expandedNeeds, priceEpoch]);
 
   useEffect(() => {
     if (state.step !== 2 || !result || result.status !== "VERIFIED") return;
@@ -385,7 +368,7 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     [state.selectedNeeds, expandedNeeds]
   );
 
-  const validateAndRecommend = useCallback(() => {
+  const validateAndRecommend = useCallback(async () => {
     if (!state.segment || !state.make || !state.emission) {
       setError(
         "Choose the vehicle type, manufacturer and emission / powertrain."
@@ -394,6 +377,21 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     }
     setError(null);
     setCartSuccess(null);
+    flushSync(() => setCatalogLoading(true));
+    try {
+      const planData = await api.catalog.planProducts();
+      const planList = Array.isArray(planData) ? planData : [];
+      if (planList.length > 0) {
+        applyCatalogPriceRows(planList);
+        storeCatalogProducts(planList);
+      }
+      setPriceEpoch((n) => n + 1);
+    } catch {
+      /* static catalog prices remain — still advance */
+    } finally {
+      setCatalogLoading(false);
+      setCatalogReady(true);
+    }
     update({ step: 2, aisRequired: state.aisRequired ?? true });
     return true;
   }, [state, update]);
@@ -531,7 +529,8 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     // Qty > 25 → quote flow
     if (qty > MAX_DIRECT_QTY) {
       saveQuoteContext(line);
-      window.location.href = "/get-a-quote?source=homepage-configurator";
+      const src = variant === "modal" ? "modal-configurator" : "homepage-configurator";
+      window.location.href = `/get-a-quote?source=${src}`;
       return;
     }
 
@@ -613,6 +612,8 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     getBadge,
     purchaseSelected,
     quoteThresholdNotice,
+    catalogReady,
+    catalogLoading,
     coverageStatus: () => coverageStatus(state.aisRequired, state.stateId),
     cumulativeCapabilities,
     formatMoney,

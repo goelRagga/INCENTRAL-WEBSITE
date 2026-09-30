@@ -16,6 +16,7 @@ import {
   planValueLabel,
   productFor,
 } from "@/lib/plan-finder";
+import { getZohoDescription } from "@/lib/commerce/catalog-prices";
 import type { PlanFamily } from "@/lib/plan-finder";
 import { cn } from "@/lib/utils";
 
@@ -65,9 +66,16 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
     .filter(Boolean)
     .join(" ");
 
+  const zohoDesc = getZohoDescription(family === "invisionplus" ? "invision-plus" : family);
   const caps = finder.cumulativeCapabilities(family);
   const isQuote = qty > MAX_DIRECT_QTY;
-  const purchaseLabel = finder.purchasing ? "Adding…" : isQuote ? "Send Quote" : "Add to Cart";
+  const purchaseLabel = !finder.catalogReady
+    ? "Loading prices…"
+    : finder.purchasing
+      ? "Adding…"
+      : isQuote
+        ? "Send Quote"
+        : "Add to Cart";
 
   return (
     <article
@@ -85,7 +93,7 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
           {meta.name}
         </h4>
         <p className="mt-[9px] mb-0 max-w-[560px] text-[13.5px] leading-[1.45] text-[#5f7480]">
-          {meta.desc}
+          {zohoDesc ?? meta.desc}
         </p>
         <div className="mt-[13px] text-[11.5px] font-medium text-[#2f7057]">{fitCopy}</div>
         <PlanWhySection copy={needCopy} />
@@ -229,7 +237,7 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
                 </label>
                 <button
                   type="button"
-                  disabled={!canProceed || finder.purchasing}
+                  disabled={!canProceed || finder.purchasing || !finder.catalogReady}
                   className="flex h-12 items-center justify-center gap-2 cursor-pointer rounded-[11px] border-0 bg-[#176fc0] text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(23,111,192,0.18)] hover:bg-[#0e61ae] disabled:cursor-not-allowed disabled:opacity-[0.48]"
                   onClick={finder.purchaseSelected}
                 >

@@ -1,5 +1,7 @@
 "use client";
 
+import { Spin } from "antd";
+
 import { needOptions, planFinderSection } from "@/config/plan-finder";
 
 import { NeedOption } from "./need-option";
@@ -108,13 +110,21 @@ export function VehicleStep({ finder }: VehicleStepProps) {
       <div className="mt-[22px] flex items-center justify-end gap-5 border-t border-[#e6ecef] pt-5 max-[760px]:flex-col max-[760px]:items-stretch">
         <button
           type="button"
-          className="inline-flex min-h-[52px] cursor-pointer items-center justify-center gap-[13px] rounded-[13px] border-0 bg-[#0d67bd] px-[22px] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(13,103,189,0.18)] transition-[background,transform] duration-150 hover:-translate-y-px hover:bg-[#075bab] max-[760px]:w-full"
+          disabled={finder.catalogLoading}
+          className="inline-flex min-h-[52px] cursor-pointer items-center justify-center gap-[13px] rounded-[13px] border-0 bg-[#0d67bd] px-[22px] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(13,103,189,0.18)] transition-[background,transform] duration-150 hover:-translate-y-px hover:bg-[#075bab] disabled:cursor-not-allowed disabled:opacity-60 max-[760px]:w-full"
           onClick={finder.validateAndRecommend}
         >
-          {copy.submitLabel}
-          <span aria-hidden="true" className="text-lg font-normal">
-            →
-          </span>
+          {finder.catalogLoading ? (
+            <>
+              <Spin size="small" />
+              Loading…
+            </>
+          ) : (
+            <>
+              {copy.submitLabel}
+              <span aria-hidden="true" className="text-lg font-normal">→</span>
+            </>
+          )}
         </button>
       </div>
     </section>
