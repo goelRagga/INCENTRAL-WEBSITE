@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 
 import { AuthModal } from "@/components/auth/auth-modal";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -36,7 +37,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         {children}
         <SiteFooter />
-        <AuthModal />
+        <Suspense fallback={null}>
+          <AuthModal />
+        </Suspense>
       </body>
     </html>
   );
