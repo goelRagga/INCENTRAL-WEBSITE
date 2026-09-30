@@ -36,7 +36,7 @@ export function AuthModal() {
         >
           ×
         </button>
-        <AuthPage onSuccess={close} />
+        <AuthPage onSuccess={close} isModal />
       </div>
     </dialog>
   );
