@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Spin } from "antd";
 
 import { supportPage } from "@/config/support";
 import { cn } from "@/lib/utils";
@@ -314,8 +315,9 @@ export function SupportRequestForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex min-h-12 items-center justify-center rounded-[999px] border border-inc-blue bg-inc-blue px-[22px] text-[15px] font-semibold text-white transition-colors hover:border-inc-blue-dark hover:bg-inc-blue-dark disabled:cursor-not-allowed disabled:opacity-70 max-[760px]:w-full"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[999px] border border-inc-blue bg-inc-blue px-[22px] text-[15px] font-semibold text-white transition-colors hover:border-inc-blue-dark hover:bg-inc-blue-dark disabled:cursor-not-allowed disabled:opacity-70 max-[760px]:w-full"
           >
+            {submitting ? <Spin size="small" /> : null}
             {submitting ? form.submittingLabel : form.submitLabel}
           </button>
         </div>

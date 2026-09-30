@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Spin } from "antd";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import { Container } from "@/components/common/container";
@@ -574,9 +575,10 @@ export function GetAQuotePageContent() {
                       </PlanFinderVehicleStepLink>
                       <button
                         type="submit"
-                        className="btn primary"
+                        className="btn primary inline-flex items-center gap-2"
                         disabled={submitting}
                       >
+                        {submitting ? <Spin size="small" /> : null}
                         {submitting ? "Submitting…" : "Submit quote request"}
                       </button>
                     </div>

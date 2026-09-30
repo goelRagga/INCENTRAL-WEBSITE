@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
+import { AuthModal } from "@/components/auth/auth-modal";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { OrganizationJsonLd } from "@/components/seo/json-ld";
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         {children}
         <SiteFooter />
+        <AuthModal />
       </body>
     </html>
   );

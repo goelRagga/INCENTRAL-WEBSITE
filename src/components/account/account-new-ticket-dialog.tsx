@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Spin } from "antd";
 import {
   useCallback,
   useEffect,
@@ -306,11 +307,12 @@ export function AccountNewTicketDialog({
                   Open Help
                 </Link>
                 <button
-                  className="btn primary"
+                  className="btn primary inline-flex items-center gap-2"
                   type="submit"
                   data-support-submit
                   disabled={submitting}
                 >
+                  {submitting ? <Spin size="small" /> : null}
                   {submitting ? "Submitting…" : "Submit support request"}
                 </button>
               </div>

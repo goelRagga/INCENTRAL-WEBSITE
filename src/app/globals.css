@@ -6052,3 +6052,88 @@ body.geo-page > footer.incf-footer {
 }
 
 }
+
+/* --- auth-modal --- */
+@layer components {
+  .auth-modal-dialog {
+    margin: auto;
+    padding: 0;
+    border: none;
+    border-radius: 20px;
+    width: min(95vw, 920px);
+    max-height: 92dvh;
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+    opacity: 0;
+    scale: 0.97;
+    transition: opacity 0.2s ease, scale 0.2s ease,
+      overlay 0.2s allow-discrete, display 0.2s allow-discrete;
+  }
+
+  .auth-modal-dialog[open] {
+    opacity: 1;
+    scale: 1;
+  }
+
+  @starting-style {
+    .auth-modal-dialog[open] {
+      opacity: 0;
+      scale: 0.97;
+    }
+  }
+
+  .auth-modal-dialog::backdrop {
+    background: rgba(10, 25, 35, 0.5);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 0.2s ease, overlay 0.2s allow-discrete, display 0.2s allow-discrete;
+  }
+
+  .auth-modal-dialog[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .auth-modal-dialog[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  .auth-modal-panel {
+    position: relative;
+  }
+
+  .auth-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 10;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #d0dde4;
+    background: #fff;
+    font-size: 18px;
+    line-height: 1;
+    color: #4a6070;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+
+  .auth-modal-close:hover {
+    background: #f0f5f8;
+    color: #152b38;
+  }
+
+  /* Suppress AuthPage's page-level spacing inside modal */
+  .auth-modal-panel .page-shell {
+    min-height: unset;
+    padding-block: 0;
+  }
+
+  .auth-modal-panel .commerce-page {
+    padding-block: 0;
+  }
+}

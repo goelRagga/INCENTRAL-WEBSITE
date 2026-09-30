@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Spin } from "antd";
 
 import { CheckoutPaymentModal } from "@/components/checkout/checkout-payment-modal";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
@@ -743,9 +744,10 @@ export function CheckoutPageContent() {
                           </Link>
                           <button
                             type="submit"
-                            className="coh-btn primary"
+                            className="coh-btn primary inline-flex items-center gap-2"
                             disabled={submitting}
                           >
+                            {submitting ? <Spin size="small" /> : null}
                             {submitting ? "Checking address..." : "Continue to dispatch"}
                           </button>
                         </div>
@@ -805,10 +807,11 @@ export function CheckoutPageContent() {
                         </button>
                         <button
                           type="button"
-                          className="coh-btn primary"
+                          className="coh-btn primary inline-flex items-center gap-2"
                           disabled={submitting}
                           onClick={handleDispatchContinue}
                         >
+                          {submitting ? <Spin size="small" /> : null}
                           {submitting ? "Confirming..." : "Continue to review"}
                         </button>
                       </div>
