@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Spin } from "antd";
 
 import { Logo } from "@/components/common/logo";
 import { siteConfig } from "@/config/site";
@@ -340,9 +341,10 @@ export function RegionUnavailablePage() {
                   <div className="geo-form-actions">
                     <button
                       type="submit"
-                      className="geo-submit"
+                      className="geo-submit inline-flex items-center gap-2"
                       disabled={submitting}
                     >
+                      {submitting ? <Spin size="small" /> : null}
                       {submitting ? "Sending…" : "Submit product enquiry"}
                     </button>
                   </div>

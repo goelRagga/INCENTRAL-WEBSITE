@@ -17,6 +17,8 @@ import { authPage, type AuthTab } from "@/config/auth";
 import { parseAuthSearchParams } from "@/lib/auth/search-params";
 import { resolveAuthRedirect } from "@/lib/auth/redirect";
 import { writeAuthSession } from "@/lib/auth/session";
+import { Spin } from "antd";
+
 import { api } from "@/lib/backend";
 import { useConfiguredCart } from "@/hooks/use-configured-cart";
 import { cn } from "@/lib/utils";
@@ -43,7 +45,7 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: ReactNod
 
 type FormResult = { tone: "good" | "bad"; message: string } | null;
 
-export function AuthPage() {
+export function AuthPage({ onSuccess }: { onSuccess?: () => void } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const signInFormRef = useRef<HTMLFormElement>(null);
@@ -104,18 +106,23 @@ export function AuthPage() {
         signedInAt: new Date().toISOString(),
       });
 
-      const redirectTarget =
-        next && next.startsWith("/") && !next.startsWith("//")
-          ? next
-          : resolveAuthRedirect(next, checkout);
-
       setResult({
         tone: "good",
         message: mode === "create" ? authPage.messages.accountCreated : authPage.messages.signedIn,
       });
+
+      if (onSuccess) {
+        window.setTimeout(onSuccess, 180);
+        return;
+      }
+
+      const redirectTarget =
+        next && next.startsWith("/") && !next.startsWith("//")
+          ? next
+          : resolveAuthRedirect(next, checkout);
       window.setTimeout(() => router.push(redirectTarget), 180);
     },
-    [checkout, next, router]
+    [checkout, next, onSuccess, router]
   );
 
   const handleSignInSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -272,7 +279,8 @@ export function AuthPage() {
                   </p>
                   <div className="form-actions">
                     <button type="submit" className="btn primary" disabled={submitting}>
-                      {signIn.submit}
+                      {submitting ? <Spin size="small" /> : null}
+                      {submitting ? "Signing in…" : signIn.submit}
                     </button>
                   </div>
                 </div>
@@ -385,7 +393,8 @@ export function AuthPage() {
                   </p>
                   <div className="form-actions">
                     <button type="submit" className="btn primary" disabled={submitting}>
-                      {create.submit}
+                      {submitting ? <Spin size="small" /> : null}
+                      {submitting ? "Creating account…" : create.submit}
                     </button>
                   </div>
                 </div>

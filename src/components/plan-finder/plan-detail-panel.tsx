@@ -3,12 +3,15 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 
+import { Spin } from "antd";
+
 import { planFinderSection } from "@/config/plan-finder";
 import { planAccentTokens } from "@/config/plans";
 import {
   buildPlanNeedCopy,
   CAP_LABELS,
   INDIA_REGIONS,
+  MAX_DIRECT_QTY,
   planMeta,
   planValueLabel,
   productFor,
@@ -63,7 +66,8 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
     .join(" ");
 
   const caps = finder.cumulativeCapabilities(family);
-  const purchaseLabel = "Add to cart";
+  const isQuote = qty > MAX_DIRECT_QTY;
+  const purchaseLabel = finder.purchasing ? "Adding…" : isQuote ? "Send Quote" : "Add to Cart";
 
   return (
     <article
@@ -225,10 +229,11 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
                 </label>
                 <button
                   type="button"
-                  disabled={!canProceed}
-                  className="h-12 cursor-pointer rounded-[11px] border-0 bg-[#176fc0] text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(23,111,192,0.18)] hover:bg-[#0e61ae] disabled:cursor-not-allowed disabled:opacity-[0.48]"
+                  disabled={!canProceed || finder.purchasing}
+                  className="flex h-12 items-center justify-center gap-2 cursor-pointer rounded-[11px] border-0 bg-[#176fc0] text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(23,111,192,0.18)] hover:bg-[#0e61ae] disabled:cursor-not-allowed disabled:opacity-[0.48]"
                   onClick={finder.purchaseSelected}
                 >
+                  {finder.purchasing ? <Spin size="small" /> : null}
                   {purchaseLabel}
                 </button>
               </div>
@@ -250,7 +255,11 @@ export function PlanDetailPanel({ finder }: PlanDetailPanelProps) {
                 </strong>
               </div>
 
-              {coverageMessage ? (
+              {finder.error ? (
+                <p className="mt-2 text-[9.5px] leading-[1.35] text-[#c0392b]">
+                  {finder.error}
+                </p>
+              ) : coverageMessage ? (
                 <p className="mt-2 min-h-3.5 text-[9.5px] leading-[1.35] text-[#667b85]">
                   {coverageMessage}
                 </p>

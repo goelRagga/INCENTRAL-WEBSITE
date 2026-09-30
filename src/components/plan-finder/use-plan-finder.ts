@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 import { planFinderSection } from "@/config/plan-finder";
-import { applyCatalogPriceRows } from "@/lib/commerce/catalog-prices";
+import { applyCatalogPriceRows, findZohoVariantId, storeCatalogProducts } from "@/lib/commerce/catalog-prices";
 import { normalizeConfiguredLine } from "@/lib/commerce/installation";
 import { api } from "@/lib/backend";
+import { useAuth } from "@/hooks/use-auth";
 
 import {
   CONFIGURATOR_STORAGE_KEY,
@@ -133,10 +134,14 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
   const storageKey =
     variant === "modal" ? MODAL_CONFIGURATOR_STORAGE_KEY : CONFIGURATOR_STORAGE_KEY;
 
+  const { isAuthenticated } = useAuth();
+  const pendingPurchase = useRef(false);
+
   const [state, setState] = useState<ConfiguratorState>(() =>
     createVehicleStepState({ segment: "3w" })
   );
   const [error, setError] = useState<string | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
   const [cartSuccess, setCartSuccess] = useState<{
     title: string;
     summary: string;
@@ -160,9 +165,13 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     let cancelled = false;
     (async () => {
       try {
-        const data = await api.catalog.products();
+        const planData = await api.catalog.planProducts();
         if (!cancelled) {
-          applyCatalogPriceRows(data);
+          const planList = Array.isArray(planData) ? planData : [];
+          if (planList.length > 0) {
+            applyCatalogPriceRows(planList);
+            storeCatalogProducts(planList);
+          }
           setPriceEpoch((n) => n + 1);
         }
       } catch {
@@ -471,16 +480,29 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     [expandedNeeds]
   );
 
-  const purchaseSelected = useCallback(() => {
+  const purchaseSelected = useCallback(async () => {
     if (!result || result.status !== "VERIFIED" || !selectedRecommendation) return;
+
+    // Auth gate — use a ref so the effect below can retry with the updated closure
+    if (!isAuthenticated) {
+      pendingPurchase.current = true;
+      window.dispatchEvent(new CustomEvent("incentral:open-auth-modal"));
+      return;
+    }
 
     const rec = selectedRecommendation;
     const product = productFor(rec.family as PlanFamily, state.aisRequired);
     if (!product) return;
 
     const cov = coverageStatus(state.aisRequired, state.stateId);
-    if (state.aisRequired && !state.stateId) return;
-    if (cov.status === "unavailable") return;
+    if (state.aisRequired && !state.stateId) {
+      setError("Select the state where these vehicles will be installed.");
+      return;
+    }
+    if (cov.status === "unavailable") {
+      setError("AIS-140 is not currently confirmed for this state. Contact us.");
+      return;
+    }
 
     const qty = Math.max(1, state.quantity);
     const meta = planMeta[rec.family as PlanFamily];
@@ -506,19 +528,45 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
       createdAt: Date.now(),
     };
 
-    if (product.purchase === "buy") {
-      addToConfiguredCart(normalizeConfiguredLine(line));
-      setCartSuccess({
-        title: `${qty} × ${product.name}`,
-        summary: `${result.summary.manufacturerLabel} · ${result.summary.emission} · ${variantLabel(state.aisRequired)}`,
-      });
-      onAddedToCart?.();
+    // Qty > 25 → quote flow
+    if (qty > MAX_DIRECT_QTY) {
+      saveQuoteContext(line);
+      window.location.href = "/get-a-quote?source=homepage-configurator";
       return;
     }
 
-    saveQuoteContext(line);
-    window.location.href = "/get-a-quote?source=homepage-configurator";
-  }, [result, selectedRecommendation, state, variant, onAddedToCart]);
+    // Add to cart — backend is required (Zoho cart is the purchase of record)
+    const variantId = findZohoVariantId(product.name, state.aisRequired);
+    if (!variantId) {
+      setError("Product not available right now. Please try again or contact us.");
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      await api.cart.add({ productVariantId: variantId, quantity: qty });
+    } catch {
+      setError("Could not add to cart. Please try again.");
+      return;
+    } finally {
+      setPurchasing(false);
+    }
+
+    addToConfiguredCart(normalizeConfiguredLine(line));
+    setCartSuccess({
+      title: `${qty} × ${product.name}`,
+      summary: `${result.summary.manufacturerLabel} · ${result.summary.emission} · ${variantLabel(state.aisRequired)}`,
+    });
+    onAddedToCart?.();
+  }, [isAuthenticated, result, selectedRecommendation, state, variant, onAddedToCart]);
+
+  // Retry purchase after sign-in via auth modal
+  useEffect(() => {
+    if (isAuthenticated && pendingPurchase.current) {
+      pendingPurchase.current = false;
+      purchaseSelected();
+    }
+  }, [isAuthenticated, purchaseSelected]);
 
   const quoteThresholdNotice =
     result?.status === "VERIFIED" && selectedRecommendation
@@ -535,6 +583,7 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
   return {
     state,
     error,
+    purchasing,
     hydrated,
     result,
     segmentOptions,

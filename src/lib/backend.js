@@ -22,9 +22,10 @@ export async function apiFetch(path, options = {}) {
 
 export const api = {
   catalog: {
-    products: ()    => apiFetch('/catalog/products'),
-    product:  (id)  => apiFetch(`/catalog/products/${id}`),
-    categories: ()  => apiFetch('/catalog/categories'),
+    products: ()           => apiFetch('/catalog/products'),
+    planProducts: ()       => apiFetch('/catalog/plan-products'),
+    product:  (id)         => apiFetch(`/catalog/products/${id}`),
+    categories: ()         => apiFetch('/catalog/categories'),
   },
   store: {
     meta:   () => apiFetch('/store/meta'),
