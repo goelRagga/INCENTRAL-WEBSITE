@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { Container } from "@/components/common/container";
 import { loadLastOrder, type PlacedOrderRecord } from "@/lib/checkout/order-storage";
@@ -25,15 +26,21 @@ function installCopy(order: PlacedOrderRecord) {
 }
 
 export function OrderConfirmationContent() {
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status");
+  const zohoOrderId = searchParams.get("orderId") ?? searchParams.get("order_id");
   const [order, setOrder] = useState<PlacedOrderRecord | null | undefined>(undefined);
 
   useEffect(() => {
     setOrder(loadLastOrder());
   }, []);
 
-  if (order === undefined) return null;
+  // Zoho redirect with status=success — show generic success even without local order data
+  const isZohoSuccess = status === "success";
 
-  if (!order) {
+  if (order === undefined && !isZohoSuccess) return null;
+
+  if (!order && !isZohoSuccess) {
     return (
       <main id="main" className="page-shell checkout-headless-page">
         <section className="coh-confirmation" data-order-confirmation="">
@@ -51,7 +58,25 @@ export function OrderConfirmationContent() {
     );
   }
 
-  const a = order.shippingAddress;
+  if (status === "cancelled" || status === "failed") {
+    return (
+      <main id="main" className="page-shell checkout-headless-page">
+        <section className="coh-confirmation" data-order-confirmation="">
+          <Container>
+            <div className="coh-empty">
+              <h2>Payment {status === "cancelled" ? "cancelled." : "failed."}</h2>
+              <p>Your payment was not completed. No charge was made.</p>
+              <Link className="coh-btn primary" href="/checkout">
+                Return to checkout
+              </Link>
+            </div>
+          </Container>
+        </section>
+      </main>
+    );
+  }
+
+  const a = order?.shippingAddress;
 
   return (
     <main id="main" className="page-shell checkout-headless-page">
@@ -75,24 +100,26 @@ export function OrderConfirmationContent() {
             <div className="coc-meta">
               <div>
                 <span>Order number</span>
-                <strong>{order.orderNumber || "Order confirmed"}</strong>
+                <strong>{zohoOrderId || order?.orderNumber || "Order confirmed"}</strong>
               </div>
-              <div>
-                <span>Payment reference</span>
-                <strong>
-                  {order.paymentId || order.transactionId || "Confirmed"}
-                </strong>
-              </div>
-              <div>
-                <span>Amount paid</span>
-                <strong>{formatMoney(order.totals?.total ?? order.amount ?? 0)}</strong>
-              </div>
+              {order?.paymentId || order?.transactionId ? (
+                <div>
+                  <span>Payment reference</span>
+                  <strong>{order.paymentId || order.transactionId}</strong>
+                </div>
+              ) : null}
+              {order?.totals?.total || order?.amount ? (
+                <div>
+                  <span>Amount paid</span>
+                  <strong>{formatMoney(order.totals?.total ?? order.amount ?? 0)}</strong>
+                </div>
+              ) : null}
             </div>
             <div className="coc-body">
               <section>
                 <h2>Order details</h2>
                 <div className="coc-items">
-                  {(order.items || []).map((x, index) => {
+                  {(order?.items || []).map((x, index) => {
                     const qty = Number(x.quantity || 0);
                     const install = Number(x.installation?.feePerDeviceExGst || 0);
                     const line = (Number(x.unitPriceExGst || 0) + install) * qty;
@@ -115,30 +142,40 @@ export function OrderConfirmationContent() {
                     );
                   })}
                 </div>
-                <div className="coh-summary-totals">
-                  <div className="coh-total-row">
-                    <span>Product subtotal</span>
-                    <strong>{formatMoney(order.totals?.productSubtotal ?? 0)}</strong>
+                {order?.totals ? (
+                  <div className="coh-summary-totals">
+                    {order.totals.productSubtotal ? (
+                      <div className="coh-total-row">
+                        <span>Product subtotal</span>
+                        <strong>{formatMoney(order.totals.productSubtotal)}</strong>
+                      </div>
+                    ) : null}
+                    {order.totals.installation ? (
+                      <div className="coh-total-row">
+                        <span>Installation</span>
+                        <strong>{formatMoney(order.totals.installation)}</strong>
+                      </div>
+                    ) : null}
+                    {order.totals.shipping ? (
+                      <div className="coh-total-row">
+                        <span>Shipping</span>
+                        <strong>{formatMoney(order.totals.shipping)}</strong>
+                      </div>
+                    ) : null}
+                    {order.totals.gst ? (
+                      <div className="coh-total-row">
+                        <span>GST (18%)</span>
+                        <strong>{formatMoney(order.totals.gst)}</strong>
+                      </div>
+                    ) : null}
+                    {order.totals.total ? (
+                      <div className="coh-total-row total">
+                        <span>Amount paid</span>
+                        <strong>{formatMoney(order.totals.total)}</strong>
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="coh-total-row">
-                    <span>Installation</span>
-                    <strong>{formatMoney(order.totals?.installation ?? 0)}</strong>
-                  </div>
-                  <div className="coh-total-row">
-                    <span>
-                      Shipping <small>₹50 per device</small>
-                    </span>
-                    <strong>{formatMoney(order.totals?.shipping ?? 0)}</strong>
-                  </div>
-                  <div className="coh-total-row">
-                    <span>GST (18%)</span>
-                    <strong>{formatMoney(order.totals?.gst ?? 0)}</strong>
-                  </div>
-                  <div className="coh-total-row total">
-                    <span>Amount paid</span>
-                    <strong>{formatMoney(order.totals?.total ?? order.amount ?? 0)}</strong>
-                  </div>
-                </div>
+                ) : null}
                 <h2 className="coc-section-spaced">Delivery address</h2>
                 <div className="coh-address-card">
                   {a ? (
@@ -185,7 +222,7 @@ export function OrderConfirmationContent() {
                     <span>3</span>
                     <div>
                       <strong>Installation and access</strong>
-                      <p>{installCopy(order)}</p>
+                      <p>{order ? installCopy(order) : "Our team will coordinate installation after dispatch."}</p>
                     </div>
                   </div>
                 </div>
@@ -195,7 +232,7 @@ export function OrderConfirmationContent() {
               <Link className="coh-btn primary" href="/account">
                 Go to My InCentral
               </Link>
-              {order.invoiceUrl ? (
+              {order?.invoiceUrl ? (
                 <a
                   className="coh-btn"
                   href={order.invoiceUrl}
@@ -204,16 +241,7 @@ export function OrderConfirmationContent() {
                 >
                   Download invoice
                 </a>
-              ) : (
-                <a
-                  className="coh-btn"
-                  href="#"
-                  aria-disabled="true"
-                  onClick={(event) => event.preventDefault()}
-                >
-                  Invoice pending
-                </a>
-              )}
+              ) : null}
               <Link className="coh-btn" href="/#solutions">
                 Continue exploring solutions
               </Link>

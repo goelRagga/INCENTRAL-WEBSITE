@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Spin } from "antd";
 
-import { CheckoutPaymentModal } from "@/components/checkout/checkout-payment-modal";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
 import { Container } from "@/components/common/container";
 import { PlanFinderVehicleStepLink } from "@/components/plan-finder/plan-finder-vehicle-step-link";
 import { useAuth } from "@/hooks/use-auth";
 import { useConfiguredCart } from "@/hooks/use-configured-cart";
-import { checkoutApi } from "@/lib/checkout/checkout-api";
+import { checkoutApi, type ShippingMethod } from "@/lib/checkout/checkout-api";
 import type { CheckoutAddress } from "@/lib/checkout/order-storage";
-import { saveLastOrder } from "@/lib/checkout/order-storage";
 import {
   errorSummaryEntries,
   validateAddressForm,
@@ -24,7 +22,6 @@ import { saveCartQuoteContext } from "@/lib/commerce/quote-context";
 import { calculateCartTotals, lineGrossExGst } from "@/lib/commerce/totals";
 import { formatMoney } from "@/lib/plan-finder/format";
 import { INDIA_REGIONS } from "@/lib/plan-finder/compatibility-data";
-import type { CartLine } from "@/lib/plan-finder/types";
 
 const INITIAL_FORM: AddressFormValues = {
   email: "",
@@ -70,29 +67,6 @@ function formatAddressHtml(address: CheckoutAddress) {
   );
 }
 
-function buildOrderItems(lines: CartLine[]) {
-  return lines.map((x) => ({
-    sku: x.sku,
-    name: x.planName,
-    line: x.line,
-    quantity: x.quantity,
-    unitPriceExGst: x.unitPrice,
-    vehicle: {
-      segment: x.segmentLabel || "",
-      manufacturer: x.manufacturerLabel || "",
-      powertrain: x.emission || "",
-    },
-    aisState: x.aisRequired
-      ? { id: x.stateId || "", label: x.stateLabel || "" }
-      : null,
-    installation: {
-      method: x.installationMethod || "intangles",
-      label: x.installationLabel || "",
-      feePerDeviceExGst: Number(x.installationFeeExGst || 0),
-    },
-  }));
-}
-
 export function CheckoutPageContent() {
   const router = useRouter();
   const { ready, isAuthenticated } = useAuth();
@@ -120,9 +94,10 @@ export function CheckoutPageContent() {
   const [notes, setNotes] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsError, setTermsError] = useState("");
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+  const [selectedShippingId, setSelectedShippingId] = useState<string>("");
+  const [paymentUrl, setPaymentUrl] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
-  const [paymentOpen, setPaymentOpen] = useState(false);
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState("");
 
   const updateField = useCallback(
@@ -163,26 +138,32 @@ export function CheckoutPageContent() {
       phone: `+91${form.phone.replace(/\D/g, "")}`,
     };
 
+    const billingAddress: CheckoutAddress | undefined = form.billingSame
+      ? undefined
+      : {
+          firstName: form.billingFirstName.trim(),
+          lastName: form.billingLastName.trim(),
+          address1: form.billingAddress1.trim(),
+          city: form.billingCity.trim(),
+          state: form.billingState,
+          postalCode: form.billingPostalCode.trim(),
+          country: "India",
+        };
+
     try {
-      await checkoutApi.validateAddress(shippingAddress);
-      setAddress(shippingAddress);
-      setCustomer({
+      const cartItems = lines.map((x) => ({ sku: x.sku, quantity: x.quantity }));
+      const { shippingMethods: methods } = await checkoutApi.validateAddress({
+        items: cartItems,
         email: form.email.trim(),
-        marketingOptIn: form.marketingOptIn,
+        shippingAddress,
+        billingAddress,
+        sameBillingAddress: form.billingSame,
       });
-      setBilling(
-        form.billingSame
-          ? shippingAddress
-          : {
-              firstName: form.billingFirstName.trim(),
-              lastName: form.billingLastName.trim(),
-              address1: form.billingAddress1.trim(),
-              city: form.billingCity.trim(),
-              state: form.billingState,
-              postalCode: form.billingPostalCode.trim(),
-              country: "India",
-            }
-      );
+      setShippingMethods(methods);
+      if (methods.length > 0) setSelectedShippingId(methods[0].id);
+      setAddress(shippingAddress);
+      setCustomer({ email: form.email.trim(), marketingOptIn: form.marketingOptIn });
+      setBilling(billingAddress ?? shippingAddress);
       setTaxProfile({
         includeCompanyTax: form.includeCompanyTax,
         companyName: form.includeCompanyTax ? form.companyName.trim() : "",
@@ -191,8 +172,7 @@ export function CheckoutPageContent() {
       goToStep(2);
     } catch (err) {
       setFieldErrors({
-        address1:
-          err instanceof Error ? err.message : "Address validation failed",
+        address1: err instanceof Error ? err.message : "Address validation failed",
       });
     } finally {
       setSubmitting(false);
@@ -200,10 +180,11 @@ export function CheckoutPageContent() {
   };
 
   const handleDispatchContinue = async () => {
-    if (!address) return;
+    if (!address || !selectedShippingId) return;
     setSubmitting(true);
     try {
-      await checkoutApi.getDispatchOptions({ items: lines, address });
+      const { paymentUrl: url } = await checkoutApi.selectShipping(selectedShippingId);
+      setPaymentUrl(url ?? "");
       goToStep(3);
     } finally {
       setSubmitting(false);
@@ -215,90 +196,20 @@ export function CheckoutPageContent() {
     router.push("/get-a-quote?source=checkout");
   };
 
-  const openPayment = () => {
+  const handleMakePayment = () => {
     if (!termsAccepted) {
-      setTermsError(
-        "Review the order and accept the Terms & Conditions before payment."
-      );
+      setTermsError("Review the order and accept the Terms & Conditions before payment.");
+      return;
+    }
+    if (!paymentUrl) {
+      setPaymentError("Payment link not available. Please go back and try again.");
       return;
     }
     setTermsError("");
     setPaymentError("");
-    setPaymentOpen(true);
-    document.body.style.overflow = "hidden";
+    clearCart();
+    window.location.href = paymentUrl;
   };
-
-  const closePayment = () => {
-    setPaymentOpen(false);
-    setPaymentProcessing(false);
-    setPaymentError("");
-    document.body.style.overflow = "";
-  };
-
-  const handlePay = async () => {
-    if (!address || !customer || !billing) return;
-    setPaymentProcessing(true);
-    setPaymentError("");
-    try {
-      const payload = {
-        customer,
-        shippingAddress: address,
-        billingAddress: billing,
-        taxProfile,
-        dispatch: {
-          method: "standard",
-          shippingFeeExGst: totals.shippingBase,
-          shippingFeeGross: totals.shippingBase * 1.18,
-        },
-        couponCode: totals.coupon.code || null,
-        notes,
-        items: buildOrderItems(lines),
-        totals: {
-          productSubtotal: totals.productBase,
-          installation: totals.installationBase,
-          shipping: totals.shippingBase,
-          gst: totals.gst,
-          discount: totals.discount,
-          total: totals.total,
-        },
-        paymentProvider: "razorpay",
-      };
-
-      const order = await checkoutApi.createOrder(payload);
-      const paymentOrder = await checkoutApi.createPaymentOrder({
-        orderId: order.orderId,
-        amount: order.amount ?? totals.total,
-        currency: "INR",
-      });
-      const verified = await checkoutApi.verifyPayment({
-        orderId: order.orderId,
-        razorpayOrderId: paymentOrder.razorpayOrderId,
-      });
-
-      const finalOrder = {
-        ...payload,
-        ...order,
-        ...paymentOrder,
-        ...verified,
-      };
-      saveLastOrder(finalOrder);
-      clearCart();
-      router.push("/order-confirmation");
-    } catch (err) {
-      setPaymentProcessing(false);
-      setPaymentError(
-        err instanceof Error
-          ? err.message
-          : "Payment could not be completed. Please try again."
-      );
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
 
   if (!ready) return null;
 
@@ -782,20 +693,35 @@ export function CheckoutPageContent() {
                             <p>Dispatch timing starts after the order is confirmed.</p>
                           </div>
                         </div>
-                        <label className="coh-shipping-option">
-                          <input type="radio" name="shippingMethod" defaultChecked />
-                          <span className="coh-option-copy">
-                            <strong>Standard shipping</strong>
-                            <span>
-                              Estimated delivery in 8 to 12 days from your order date.
-                              Installation or AIS-140 certification is arranged separately
-                              where applicable.
+                        {shippingMethods.length > 0 ? shippingMethods.map((m) => (
+                          <label key={m.id} className="coh-shipping-option">
+                            <input
+                              type="radio"
+                              name="shippingMethod"
+                              value={m.id}
+                              checked={selectedShippingId === m.id}
+                              onChange={() => setSelectedShippingId(m.id)}
+                            />
+                            <span className="coh-option-copy">
+                              <strong>{m.name}</strong>
+                              {m.description ? <span>{m.description}</span> : null}
                             </span>
-                          </span>
-                          <span className="coh-option-price">
-                            {formatMoney(totals.shippingBase)}
-                          </span>
-                        </label>
+                            {m.rate != null ? (
+                              <span className="coh-option-price">{formatMoney(m.rate)}</span>
+                            ) : null}
+                          </label>
+                        )) : (
+                          <label className="coh-shipping-option">
+                            <input type="radio" name="shippingMethod" defaultChecked />
+                            <span className="coh-option-copy">
+                              <strong>Standard shipping</strong>
+                              <span>
+                                Estimated delivery in 8 to 12 days from your order date.
+                              </span>
+                            </span>
+                            <span className="coh-option-price">{formatMoney(totals.shippingBase)}</span>
+                          </label>
+                        )}
                       </div>
                       <div className="coh-actions">
                         <button
@@ -968,6 +894,9 @@ export function CheckoutPageContent() {
                           </p>
                         </div>
                       </div>
+                      {paymentError ? (
+                        <p className="coh-field-error" role="alert">{paymentError}</p>
+                      ) : null}
                       <div className="coh-actions">
                         <button
                           type="button"
@@ -979,7 +908,7 @@ export function CheckoutPageContent() {
                         <button
                           type="button"
                           className="coh-btn primary"
-                          onClick={openPayment}
+                          onClick={handleMakePayment}
                         >
                           Make payment
                         </button>
@@ -995,16 +924,6 @@ export function CheckoutPageContent() {
         </Container>
       </section>
 
-      <CheckoutPaymentModal
-        open={paymentOpen}
-        amount={totals.total}
-        email={customer?.email || ""}
-        phone={address?.phone || ""}
-        processing={paymentProcessing}
-        error={paymentError}
-        onClose={closePayment}
-        onPay={handlePay}
-      />
     </main>
   );
 }

@@ -39,10 +39,11 @@ export const api = {
     remove: (b)   => apiFetch('/cart', { method: 'DELETE', body: JSON.stringify(b) }),
   },
   checkout: {
-    get:      (checkoutId)  => apiFetch(`/checkout?checkoutId=${checkoutId}`),
-    address:  (b)           => apiFetch('/checkout/address',  { method: 'POST', body: JSON.stringify(b) }),
-    shipping: (b)           => apiFetch('/checkout/shipping', { method: 'POST', body: JSON.stringify(b) }),
-    place:    (b)           => apiFetch('/checkout/place',    { method: 'POST', body: JSON.stringify(b) }),
+    get:       (checkoutId) => apiFetch(`/checkout?checkoutId=${checkoutId}`),
+    syncCart:  (b)          => apiFetch('/checkout/sync-cart', { method: 'POST', body: JSON.stringify(b) }),
+    address:   (b)          => apiFetch('/checkout/address',   { method: 'POST', body: JSON.stringify(b) }),
+    shipping:  (b)          => apiFetch('/checkout/shipping',  { method: 'POST', body: JSON.stringify(b) }),
+    place:     (b)          => apiFetch('/checkout/place',     { method: 'POST', body: JSON.stringify(b) }),
   },
   auth: {
     signIn:  (b) => apiFetch('/auth/signin',  { method: 'POST', body: JSON.stringify(b) }),

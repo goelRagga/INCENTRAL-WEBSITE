@@ -1,121 +1,77 @@
 import { api } from "@/lib/backend";
 
-import type { CheckoutAddress, PlacedOrderRecord } from "./order-storage";
+import type { CheckoutAddress } from "./order-storage";
 
-const mode =
-  typeof process !== "undefined" &&
-  process.env.NEXT_PUBLIC_CHECKOUT_MODE === "api"
-    ? "api"
-    : "mock";
+const CHECKOUT_ID_KEY = "zoho_checkout_id";
+const PAYMENT_URL_KEY = "zoho_payment_url";
 
-const wait = (ms = 450) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function mockOrderNumber() {
-  return `INC-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+function ssGet(key: string) {
+  if (typeof window === "undefined") return null;
+  try { return sessionStorage.getItem(key); } catch { return null; }
+}
+function ssSet(key: string, val: string) {
+  if (typeof window === "undefined") return;
+  try { sessionStorage.setItem(key, val); } catch {}
+}
+function ssDel(key: string) {
+  if (typeof window === "undefined") return;
+  try { sessionStorage.removeItem(key); } catch {}
 }
 
-export type CheckoutPlacePayload = PlacedOrderRecord & {
-  dispatch?: { method: string; shippingFeeExGst: number; shippingFeeGross: number };
-  couponCode?: string | null;
-  notes?: string;
-  paymentProvider?: string;
+export type ShippingMethod = {
+  id: string;
+  name: string;
+  description?: string;
+  rate?: number;
 };
+
+function normalizeShippingMethods(raw: unknown[]): ShippingMethod[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((m: any) => ({
+    id: String(m.shipping_method_id ?? m.id ?? ""),
+    name: m.shipping_method_name ?? m.name ?? "Standard shipping",
+    description: m.description ?? "",
+    rate: Number(m.rate ?? m.shipping_rate ?? 0),
+  }));
+}
 
 export const checkoutApi = {
-  mode,
-  async validateAddress(address: CheckoutAddress & { turnstileToken?: string }) {
-    if (mode === "api") {
-      return api.checkout.address(address);
-    }
-    await wait(260);
-    return { valid: true, normalized: address };
+  getCheckoutId: () => ssGet(CHECKOUT_ID_KEY),
+  getStoredPaymentUrl: () => ssGet(PAYMENT_URL_KEY),
+
+  clearSession() {
+    ssDel(CHECKOUT_ID_KEY);
+    ssDel(PAYMENT_URL_KEY);
   },
-  async getDispatchOptions(payload: unknown) {
-    if (mode === "api") {
-      return api.checkout.shipping(payload);
+
+  async validateAddress(params: {
+    items: Array<{ sku: string; quantity: number }>;
+    email: string;
+    shippingAddress: CheckoutAddress;
+    billingAddress?: CheckoutAddress;
+    sameBillingAddress: boolean;
+  }): Promise<{ shippingMethods: ShippingMethod[] }> {
+    let checkoutId = ssGet(CHECKOUT_ID_KEY);
+    if (!checkoutId) {
+      const sync = await api.checkout.syncCart({ items: params.items });
+      checkoutId = sync.checkoutId as string;
+      ssSet(CHECKOUT_ID_KEY, checkoutId);
     }
-    await wait(220);
-    return {
-      options: [
-        {
-          id: "standard",
-          label: "Standard shipping",
-          eta: "8 to 12 days from order date",
-          pricePerDevice: 50,
-        },
-      ],
-    };
+    const result = await api.checkout.address({
+      checkoutId,
+      email: params.email,
+      shippingAddress: params.shippingAddress,
+      billingAddress: params.billingAddress,
+      sameBillingAddress: params.sameBillingAddress,
+    });
+    return { shippingMethods: normalizeShippingMethods(result.shippingMethods ?? []) };
   },
-  async createOrder(payload: CheckoutPlacePayload) {
-    if (mode === "api") {
-      return api.checkout.place(payload);
-    }
-    await wait(520);
-    return {
-      orderId: `zoho_${Date.now()}`,
-      orderNumber: mockOrderNumber(),
-      status: "draft",
-      amount: payload.totals?.total ?? 0,
-      currency: "INR",
-    };
-  },
-  async createPaymentOrder(payload: {
-    orderId: string;
-    amount: number;
-    currency: string;
-  }) {
-    if (mode === "api") {
-      return apiFetchPaymentOrder(payload);
-    }
-    await wait(340);
-    return {
-      razorpayOrderId: `order_${Date.now()}`,
-      amount: payload.amount,
-      currency: payload.currency,
-    };
-  },
-  async verifyPayment(payload: {
-    orderId: string;
-    razorpayOrderId: string;
-  }) {
-    if (mode === "api") {
-      return apiFetchPaymentVerify(payload);
-    }
-    await wait(850);
-    return {
-      success: true,
-      paymentId: `pay_${Date.now()}`,
-      transactionId: `TXN${Date.now()}`,
-      paidAt: new Date().toISOString(),
-    };
+
+  async selectShipping(shippingMethodId: string): Promise<{ paymentUrl: string | null }> {
+    const checkoutId = ssGet(CHECKOUT_ID_KEY);
+    const result = await api.checkout.shipping({ shippingMethodId, checkoutId });
+    const paymentUrl = result.paymentUrl as string | null ?? null;
+    if (paymentUrl) ssSet(PAYMENT_URL_KEY, paymentUrl);
+    return { paymentUrl };
   },
 };
-
-async function apiFetchPaymentOrder(payload: {
-  orderId: string;
-  amount: number;
-  currency: string;
-}) {
-  const res = await fetch("/api/checkout/payment/order", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Could not start payment.");
-  return res.json();
-}
-
-async function apiFetchPaymentVerify(payload: {
-  orderId: string;
-  razorpayOrderId: string;
-}) {
-  const res = await fetch("/api/checkout/payment/verify", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Payment verification failed.");
-  return res.json();
-}
