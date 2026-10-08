@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 import { Container } from "@/components/common/container";
 import { applyCouponCode } from "@/lib/commerce/coupon";
+import {
+  persistZohoCartId,
+  readZohoCartId,
+  withCartIdQuery,
+  ZOHO_CART_ID_QUERY_PARAM,
+} from "@/lib/commerce/zoho-cart-session";
 import { normalizeConfiguredLine } from "@/lib/commerce/installation";
 import { saveCartQuoteContext } from "@/lib/commerce/quote-context";
 import { calculateCartTotals } from "@/lib/commerce/totals";
@@ -19,6 +26,8 @@ import { CartEmptyState } from "./cart-empty-state";
 import { CartLineItem } from "./cart-line-item";
 
 export function CartPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
   const { lines, coupon, deviceCount, lineCount, updateLines, clearCart, updateCoupon } =
     useConfiguredCart();
@@ -73,11 +82,24 @@ export function CartPageContent() {
     }
   };
 
+  useEffect(() => {
+    const fromUrl = searchParams.get(ZOHO_CART_ID_QUERY_PARAM);
+    if (fromUrl?.trim()) {
+      persistZohoCartId(fromUrl);
+      return;
+    }
+    const stored = readZohoCartId();
+    if (stored) {
+      router.replace(withCartIdQuery("/cart", stored), { scroll: false });
+    }
+  }, [router, searchParams]);
+
   const checkoutHref = useMemo(() => {
+    const cartId = readZohoCartId();
     if (totals.quoteRequired) return "/get-a-quote?source=cart";
-    if (isAuthenticated) return "/checkout";
-    return `/sign-in?mode=login&checkout=1&next=${encodeURIComponent("/checkout")}`;
-  }, [isAuthenticated, totals.quoteRequired]);
+    if (isAuthenticated) return withCartIdQuery("/checkout", cartId);
+    return `/sign-in?mode=login&checkout=1&next=${encodeURIComponent(withCartIdQuery("/checkout", cartId))}`;
+  }, [isAuthenticated, searchParams, totals.quoteRequired]);
 
   const handleContinue = () => {
     if (totals.quoteRequired) {

@@ -21,18 +21,48 @@ export type CheckoutPlacePayload = PlacedOrderRecord & {
   paymentProvider?: string;
 };
 
+export type CheckoutAddressPayload = {
+  shippingAddress: CheckoutAddress & { email?: string };
+  billingAddress: CheckoutAddress & { email?: string };
+  billingSame?: boolean;
+  checkoutId?: string | null;
+  cartId?: string | null;
+};
+
+function useZohoCheckoutApi(payload: { checkoutId?: string | null; cartId?: string | null }) {
+  if (mode === "api") return true;
+  const id = (payload.checkoutId ?? payload.cartId)?.trim();
+  return Boolean(id);
+}
+
 export const checkoutApi = {
   mode,
-  async validateAddress(address: CheckoutAddress & { turnstileToken?: string }) {
-    if (mode === "api") {
-      return api.checkout.address(address);
+  async validateAddress(payload: CheckoutAddressPayload) {
+    if (useZohoCheckoutApi(payload)) {
+      const checkoutId = payload.checkoutId ?? payload.cartId;
+      return api.checkout.address({
+        shippingAddress: payload.shippingAddress,
+        billingAddress: payload.billingAddress,
+        billingSame: payload.billingSame,
+        checkoutId,
+        cartId: payload.cartId ?? checkoutId,
+      });
     }
     await wait(260);
-    return { valid: true, normalized: address };
+    return { valid: true, normalized: payload.shippingAddress };
   },
-  async getDispatchOptions(payload: unknown) {
-    if (mode === "api") {
-      return api.checkout.shipping(payload);
+  async getDispatchOptions(payload: {
+    shippingMethodId: string;
+    checkoutId?: string | null;
+    cartId?: string | null;
+  }) {
+    if (useZohoCheckoutApi(payload)) {
+      const checkoutId = payload.checkoutId ?? payload.cartId;
+      return api.checkout.shipping({
+        shippingMethodId: payload.shippingMethodId,
+        checkoutId,
+        cartId: payload.cartId ?? checkoutId,
+      });
     }
     await wait(220);
     return {

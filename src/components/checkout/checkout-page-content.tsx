@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Spin } from "antd";
 
@@ -21,6 +21,18 @@ import {
   type FieldErrors,
 } from "@/lib/checkout/validation";
 import { saveCartQuoteContext } from "@/lib/commerce/quote-context";
+import {
+  fetchZohoCheckout,
+  normalizeZohoCheckout,
+  zohoStateLabel,
+  type ZohoCheckoutSnapshot,
+} from "@/lib/commerce/zoho-checkout";
+import {
+  persistZohoCartId,
+  readZohoCartId,
+  withCartIdQuery,
+  ZOHO_CART_ID_QUERY_PARAM,
+} from "@/lib/commerce/zoho-cart-session";
 import { calculateCartTotals, lineGrossExGst } from "@/lib/commerce/totals";
 import { formatMoney } from "@/lib/plan-finder/format";
 import { INDIA_REGIONS } from "@/lib/plan-finder/compatibility-data";
@@ -48,7 +60,7 @@ const INITIAL_FORM: AddressFormValues = {
   gstin: "",
 };
 
-function formatAddressHtml(address: CheckoutAddress) {
+function formatAddressHtml(address: CheckoutAddress, stateLabel?: string) {
   return (
     <>
       <strong>
@@ -57,7 +69,7 @@ function formatAddressHtml(address: CheckoutAddress) {
       <br />
       {address.address1}
       <br />
-      {address.city}, {address.state} {address.postalCode}
+      {address.city}, {stateLabel ?? address.state} {address.postalCode}
       <br />
       {address.country}
       {address.phone ? (
@@ -95,8 +107,15 @@ function buildOrderItems(lines: CartLine[]) {
 
 export function CheckoutPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { ready, isAuthenticated } = useAuth();
   const { lines, coupon, clearCart } = useConfiguredCart();
+
+  const checkoutId = useMemo(() => {
+    const fromUrl = searchParams.get(ZOHO_CART_ID_QUERY_PARAM);
+    if (fromUrl?.trim()) return fromUrl.trim();
+    return readZohoCartId();
+  }, [searchParams]);
 
   const totals = useMemo(
     () => calculateCartTotals(lines, coupon),
@@ -124,6 +143,57 @@ export function CheckoutPageContent() {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [zohoCheckoutLoading, setZohoCheckoutLoading] = useState(false);
+  const [zohoCheckoutError, setZohoCheckoutError] = useState<string | null>(null);
+  const [zohoCheckout, setZohoCheckout] = useState<ZohoCheckoutSnapshot | null>(null);
+  const [selectedShippingMethodId, setSelectedShippingMethodId] = useState("");
+
+  const stateOptions = useMemo(() => {
+    if (zohoCheckout?.stateOptions.length) return zohoCheckout.stateOptions;
+    return INDIA_REGIONS.map((region) => ({
+      code: region.label,
+      name: region.label,
+    }));
+  }, [zohoCheckout]);
+
+  const defaultCountry = useMemo(() => {
+    const code = zohoCheckout?.defaultCountryCode ?? "IN";
+    return (
+      zohoCheckout?.countries.find((country) => country.code === code) ?? {
+        code: "IN",
+        name: "India",
+        mobileCode: "+91",
+        states: stateOptions,
+      }
+    );
+  }, [zohoCheckout, stateOptions]);
+
+  const shippingMethods = zohoCheckout?.shippingMethods ?? [];
+
+  const effectiveShippingMethods = useMemo(() => {
+    if (shippingMethods.length) return shippingMethods;
+    return [
+      {
+        id: "standard",
+        name: "Standard shipping",
+        rate: totals.shippingBase,
+        deliveryTime:
+          "Estimated delivery in 8 to 12 days from your order date. Installation or AIS-140 certification is arranged separately where applicable.",
+        isDefault: true,
+      },
+    ];
+  }, [shippingMethods, totals.shippingBase]);
+
+  const selectedShippingMethod = useMemo(
+    () =>
+      effectiveShippingMethods.find((method) => method.id === selectedShippingMethodId) ??
+      effectiveShippingMethods.find((method) => method.isDefault) ??
+      effectiveShippingMethods[0] ??
+      null,
+    [effectiveShippingMethods, selectedShippingMethodId]
+  );
+
+  const zohoOrderTotal = zohoCheckout?.order.total ?? 0;
 
   const updateField = useCallback(
     (name: keyof AddressFormValues, value: string | boolean) => {
@@ -152,37 +222,54 @@ export function CheckoutPageContent() {
     if (Object.keys(errors).length > 0) return;
 
     setSubmitting(true);
-    const shippingAddress: CheckoutAddress = {
+    const phoneDigits = form.phone.replace(/\D/g, "");
+    const dialCode = (defaultCountry.mobileCode ?? "+91").replace(/\s/g, "");
+    const shippingAddress: CheckoutAddress & { email?: string } = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       address1: form.address1.trim(),
       city: form.city.trim(),
       state: form.state,
       postalCode: form.postalCode.trim(),
-      country: "India",
-      phone: `+91${form.phone.replace(/\D/g, "")}`,
+      country: defaultCountry.name,
+      phone: `${dialCode}${phoneDigits}`,
+      email: form.email.trim(),
     };
+    const billingAddress: CheckoutAddress & { email?: string } = form.billingSame
+      ? shippingAddress
+      : {
+          firstName: form.billingFirstName.trim(),
+          lastName: form.billingLastName.trim(),
+          address1: form.billingAddress1.trim(),
+          city: form.billingCity.trim(),
+          state: form.billingState,
+          postalCode: form.billingPostalCode.trim(),
+          country: defaultCountry.name,
+          email: form.email.trim(),
+        };
 
     try {
-      await checkoutApi.validateAddress(shippingAddress);
+      const response = await checkoutApi.validateAddress({
+        shippingAddress,
+        billingAddress,
+        billingSame: form.billingSame,
+        checkoutId,
+        cartId: checkoutId,
+      });
+      const snapshot = normalizeZohoCheckout(response, checkoutId);
+      if (snapshot) {
+        setZohoCheckout(snapshot);
+        const defaultMethod =
+          snapshot.shippingMethods.find((method) => method.isDefault) ??
+          snapshot.shippingMethods[0];
+        if (defaultMethod) setSelectedShippingMethodId(defaultMethod.id);
+      }
       setAddress(shippingAddress);
       setCustomer({
         email: form.email.trim(),
         marketingOptIn: form.marketingOptIn,
       });
-      setBilling(
-        form.billingSame
-          ? shippingAddress
-          : {
-              firstName: form.billingFirstName.trim(),
-              lastName: form.billingLastName.trim(),
-              address1: form.billingAddress1.trim(),
-              city: form.billingCity.trim(),
-              state: form.billingState,
-              postalCode: form.billingPostalCode.trim(),
-              country: "India",
-            }
-      );
+      setBilling(billingAddress);
       setTaxProfile({
         includeCompanyTax: form.includeCompanyTax,
         companyName: form.includeCompanyTax ? form.companyName.trim() : "",
@@ -203,8 +290,20 @@ export function CheckoutPageContent() {
     if (!address) return;
     setSubmitting(true);
     try {
-      await checkoutApi.getDispatchOptions({ items: lines, address });
+      const methodId =
+        selectedShippingMethodId || shippingMethods[0]?.id || "standard";
+      const response = await checkoutApi.getDispatchOptions({
+        shippingMethodId: methodId,
+        cartId: checkoutId,
+      });
+      const snapshot = normalizeZohoCheckout(response, checkoutId);
+      if (snapshot) setZohoCheckout(snapshot);
       goToStep(3);
+    } catch (err) {
+      setFieldErrors({
+        address1:
+          err instanceof Error ? err.message : "Could not confirm shipping method.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -246,9 +345,9 @@ export function CheckoutPageContent() {
         billingAddress: billing,
         taxProfile,
         dispatch: {
-          method: "standard",
-          shippingFeeExGst: totals.shippingBase,
-          shippingFeeGross: totals.shippingBase * 1.18,
+          method: selectedShippingMethodId || selectedShippingMethod?.id || "standard",
+          shippingFeeExGst: selectedShippingMethod?.rate ?? totals.shippingBase,
+          shippingFeeGross: (selectedShippingMethod?.rate ?? totals.shippingBase) * 1.18,
         },
         couponCode: totals.coupon.code || null,
         notes,
@@ -300,9 +399,57 @@ export function CheckoutPageContent() {
     };
   }, []);
 
-  if (!ready) return null;
+  useEffect(() => {
+    const fromUrl = searchParams.get(ZOHO_CART_ID_QUERY_PARAM);
+    if (fromUrl?.trim()) {
+      persistZohoCartId(fromUrl);
+      return;
+    }
+    const stored = readZohoCartId();
+    if (stored) {
+      router.replace(withCartIdQuery("/checkout", stored), { scroll: false });
+    }
+  }, [router, searchParams]);
 
-  const signInHref = `/sign-in?mode=login&checkout=1&next=${encodeURIComponent("/checkout")}`;
+  useEffect(() => {
+    if (!ready || !isAuthenticated || !checkoutId) return;
+    let cancelled = false;
+    (async () => {
+      setZohoCheckoutLoading(true);
+      setZohoCheckoutError(null);
+      try {
+        const { snapshot } = await fetchZohoCheckout(checkoutId);
+        if (!cancelled && snapshot) {
+          setZohoCheckout(snapshot);
+          const defaultMethod =
+            snapshot.shippingMethods.find((method) => method.isDefault) ??
+            snapshot.shippingMethods[0];
+          if (defaultMethod) setSelectedShippingMethodId(defaultMethod.id);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setZohoCheckoutError(
+            err instanceof Error
+              ? err.message
+              : "Could not load checkout from the store."
+          );
+        }
+      } finally {
+        if (!cancelled) setZohoCheckoutLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, isAuthenticated, checkoutId]);
+
+  const signInHref = useMemo(
+    () =>
+      `/sign-in?mode=login&checkout=1&next=${encodeURIComponent(withCartIdQuery("/checkout", checkoutId))}`,
+    [checkoutId]
+  );
+
+  if (!ready) return null;
 
   return (
     <main id="main" className="page-shell checkout-headless-page">
@@ -340,6 +487,30 @@ export function CheckoutPageContent() {
               <PlanFinderVehicleStepLink className="coh-btn primary">
                 Find the right solution
               </PlanFinderVehicleStepLink>
+            </div>
+          ) : !checkoutId ? (
+            <div className="coh-gate">
+              <h2>Cart session missing.</h2>
+              <p>
+                We need your store cart id to start checkout. Return to the cart or add
+                items again from the configurator.
+              </p>
+              <Link className="coh-btn primary" href="/cart">
+                Back to cart
+              </Link>
+            </div>
+          ) : zohoCheckoutLoading ? (
+            <div className="coh-gate" aria-busy="true">
+              <Spin size="large" />
+              <p>Loading checkout…</p>
+            </div>
+          ) : zohoCheckoutError ? (
+            <div className="coh-gate">
+              <h2>Checkout unavailable.</h2>
+              <p>{zohoCheckoutError}</p>
+              <Link className="coh-btn primary" href={withCartIdQuery("/cart", checkoutId)}>
+                Back to cart
+              </Link>
             </div>
           ) : totals.quoteRequired ? (
             <div className="coh-quote-gate">
@@ -512,7 +683,7 @@ export function CheckoutPageContent() {
                             </div>
                             <div className="coh-field">
                               <label htmlFor="field">Country</label>
-                              <input id="field" readOnly value="India" />
+                              <input id="field" readOnly value={defaultCountry.name} />
                             </div>
                             <div className="coh-field">
                               <label htmlFor="state">
@@ -527,9 +698,9 @@ export function CheckoutPageContent() {
                                 onChange={(e) => updateField("state", e.target.value)}
                               >
                                 <option value="">Select state / union territory</option>
-                                {INDIA_REGIONS.map((region) => (
-                                  <option key={region.id} value={region.label}>
-                                    {region.label}
+                                {stateOptions.map((region) => (
+                                  <option key={region.code} value={region.code}>
+                                    {region.name}
                                   </option>
                                 ))}
                               </select>
@@ -559,7 +730,11 @@ export function CheckoutPageContent() {
                                 Mobile number <span className="coh-required">*</span>
                               </label>
                               <div className="coh-phone-row">
-                                <input readOnly value="+91" aria-label="Country code" />
+                                <input
+                                  readOnly
+                                  value={defaultCountry.mobileCode ?? "+91"}
+                                  aria-label="Country code"
+                                />
                                 <input
                                   id="phone"
                                   name="phone"
@@ -662,9 +837,9 @@ export function CheckoutPageContent() {
                                     }
                                   >
                                     <option value="">Select state / union territory</option>
-                                    {INDIA_REGIONS.map((region) => (
-                                      <option key={region.id} value={region.label}>
-                                        {region.label}
+                                    {stateOptions.map((region) => (
+                                      <option key={region.code} value={region.code}>
+                                        {region.name}
                                       </option>
                                     ))}
                                   </select>
@@ -772,7 +947,10 @@ export function CheckoutPageContent() {
                           </button>
                         </div>
                         <div className="coh-address-card">
-                          {formatAddressHtml(address)}
+                          {formatAddressHtml(
+                            address,
+                            zohoStateLabel(address.state, zohoCheckout)
+                          )}
                         </div>
                       </div>
                       <div className="coh-section">
@@ -782,20 +960,34 @@ export function CheckoutPageContent() {
                             <p>Dispatch timing starts after the order is confirmed.</p>
                           </div>
                         </div>
-                        <label className="coh-shipping-option">
-                          <input type="radio" name="shippingMethod" defaultChecked />
-                          <span className="coh-option-copy">
-                            <strong>Standard shipping</strong>
-                            <span>
-                              Estimated delivery in 8 to 12 days from your order date.
-                              Installation or AIS-140 certification is arranged separately
-                              where applicable.
+                        {effectiveShippingMethods.map((method) => (
+                          <label key={method.id} className="coh-shipping-option">
+                            <input
+                              type="radio"
+                              name="shippingMethod"
+                              checked={
+                                selectedShippingMethodId
+                                  ? selectedShippingMethodId === method.id
+                                  : method.isDefault
+                              }
+                              onChange={() => setSelectedShippingMethodId(method.id)}
+                            />
+                            <span className="coh-option-copy">
+                              <strong>{method.name}</strong>
+                              {method.deliveryTime ? <span>{method.deliveryTime}</span> : null}
                             </span>
-                          </span>
-                          <span className="coh-option-price">
-                            {formatMoney(totals.shippingBase)}
-                          </span>
-                        </label>
+                            <span className="coh-option-price">
+                              {formatMoney(method.rate || totals.shippingBase)}
+                            </span>
+                          </label>
+                        ))}
+                        {!shippingMethods.length ? (
+                          <p className="coh-field-help coh-mt-10">
+                            Shipping options from the store will appear here once your
+                            address is saved. You can continue with standard dispatch for
+                            now.
+                          </p>
+                        ) : null}
                       </div>
                       <div className="coh-actions">
                         <button
@@ -835,13 +1027,21 @@ export function CheckoutPageContent() {
                           </button>
                         </div>
                         <div className="coh-address-card">
-                          {formatAddressHtml(address)}
+                          {formatAddressHtml(
+                            address,
+                            zohoStateLabel(address.state, zohoCheckout)
+                          )}
                         </div>
                         <div className="coh-dispatch-card coh-mt-10">
                           <strong>Shipping method</strong>
                           <span>
-                            Standard shipping · {formatMoney(totals.shippingBase)} · 8
-                            to 12 days from your order date
+                            {selectedShippingMethod?.name ?? "Standard shipping"} ·{" "}
+                            {formatMoney(
+                              selectedShippingMethod?.rate ?? totals.shippingBase
+                            )}
+                            {selectedShippingMethod?.deliveryTime
+                              ? ` · ${selectedShippingMethod.deliveryTime}`
+                              : " · 8 to 12 days from your order date"}
                           </span>
                         </div>
                       </div>

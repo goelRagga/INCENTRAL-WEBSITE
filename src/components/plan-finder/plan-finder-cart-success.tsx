@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 
 import { planFinderSection } from "@/config/plan-finder";
+import { readZohoCartId, withCartIdQuery } from "@/lib/commerce/zoho-cart-session";
 import { cn } from "@/lib/utils";
 
 type PlanFinderCartSuccessProps = {
@@ -52,7 +55,7 @@ export function PlanFinderCartSuccess({
           {commerce.cartAnotherLabel}
         </button>
         <Link
-          href="/cart"
+          href={withCartIdQuery("/cart", readZohoCartId())}
           className="plan-finder-cart-success-cart flex min-h-[46px] min-w-0 items-center justify-center gap-[9px] rounded-[11px] border border-[#176fc0] bg-[#176fc0] text-[13px] font-semibold text-white no-underline shadow-[0_8px_18px_rgba(23,111,192,0.17)] hover:border-[#0e61ae] hover:bg-[#0e61ae] max-[760px]:min-h-[44px]"
         >
           {commerce.cartViewLabel}

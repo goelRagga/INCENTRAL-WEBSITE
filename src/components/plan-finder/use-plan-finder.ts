@@ -2,10 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { planFinderSection } from "@/config/plan-finder";
 import { applyCatalogPriceRows, findZohoVariantId, storeCatalogProducts } from "@/lib/commerce/catalog-prices";
 import { normalizeConfiguredLine } from "@/lib/commerce/installation";
+import {
+  applyCartIdSearchParam,
+  extractCartId,
+  persistZohoCartId,
+} from "@/lib/commerce/zoho-cart-session";
 import { api } from "@/lib/backend";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -135,6 +141,9 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
     variant === "modal" ? MODAL_CONFIGURATOR_STORAGE_KEY : CONFIGURATOR_STORAGE_KEY;
 
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const pendingPurchase = useRef(false);
 
   const [state, setState] = useState<ConfiguratorState>(() =>
@@ -543,7 +552,15 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
 
     setPurchasing(true);
     try {
-      await api.cart.add({ productVariantId: variantId, quantity: qty });
+      const cartPayload = await api.cart.add({ productVariantId: variantId, quantity: qty });
+      const cartId = extractCartId(cartPayload);
+      if (cartId) {
+        persistZohoCartId(cartId);
+        router.replace(
+          applyCartIdSearchParam(pathname, searchParams, cartId),
+          { scroll: false }
+        );
+      }
     } catch {
       setError("Could not add to cart. Please try again.");
       return;
@@ -557,7 +574,17 @@ export function usePlanFinder({ variant = "section", onAddedToCart }: UsePlanFin
       summary: `${result.summary.manufacturerLabel} · ${result.summary.emission} · ${variantLabel(state.aisRequired)}`,
     });
     onAddedToCart?.();
-  }, [isAuthenticated, result, selectedRecommendation, state, variant, onAddedToCart]);
+  }, [
+    isAuthenticated,
+    pathname,
+    result,
+    router,
+    searchParams,
+    selectedRecommendation,
+    state,
+    variant,
+    onAddedToCart,
+  ]);
 
   // Retry purchase after sign-in via auth modal
   useEffect(() => {

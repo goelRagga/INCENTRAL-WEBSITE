@@ -39,7 +39,8 @@ export const api = {
     remove: (b)   => apiFetch('/cart', { method: 'DELETE', body: JSON.stringify(b) }),
   },
   checkout: {
-    get:      (checkoutId)  => apiFetch(`/checkout?checkoutId=${checkoutId}`),
+    get: (checkoutId) =>
+      apiFetch(`/checkout?checkoutId=${encodeURIComponent(checkoutId)}`),
     address:  (b)           => apiFetch('/checkout/address',  { method: 'POST', body: JSON.stringify(b) }),
     shipping: (b)           => apiFetch('/checkout/shipping', { method: 'POST', body: JSON.stringify(b) }),
     place:    (b)           => apiFetch('/checkout/place',    { method: 'POST', body: JSON.stringify(b) }),
