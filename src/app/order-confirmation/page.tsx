@@ -1,5 +1,7 @@
 import "@/styles/checkout-headless.css";
 
+import { Suspense } from "react";
+
 import { OrderConfirmationContent } from "@/components/checkout/order-confirmation-content";
 import { constructMetadata } from "@/lib/metadata";
 
@@ -11,5 +13,9 @@ export const metadata = constructMetadata({
 });
 
 export default function OrderConfirmationPage() {
-  return <OrderConfirmationContent />;
+  return (
+    <Suspense>
+      <OrderConfirmationContent />
+    </Suspense>
+  );
 }
