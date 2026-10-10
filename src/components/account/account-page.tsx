@@ -270,7 +270,7 @@ export function AccountPage() {
   );
 
   const handleInvoiceDownload = useCallback(
-    async (e?: MouseEvent) => {
+    (e?: MouseEvent) => {
       e?.preventDefault();
       const ordersList = bootstrap?.orders ?? [];
       const invoicesList = bootstrap?.invoices ?? [];
@@ -285,17 +285,7 @@ export function AccountPage() {
         window.open(cached.url, "_blank", "noopener");
         return;
       }
-      try {
-        const raw = await api.account.invoice(order.invoiceId) as Record<string, unknown>;
-        const url = String(raw?.invoice_url ?? raw?.url ?? "");
-        if (url) {
-          window.open(url, "_blank", "noopener");
-        } else {
-          showToast("Invoice link not available. Please contact support.", "bad");
-        }
-      } catch {
-        showToast("Could not load invoice. Please try again.", "bad");
-      }
+      window.open(api.account.invoicePdfUrl(order.invoiceId), "_blank", "noopener");
     },
     [bootstrap, selectedOrderDetail, selectedOrderId, showToast]
   );
@@ -841,26 +831,13 @@ export function AccountPage() {
                                   <td>{formatMoney(inv.total)}</td>
                                   <td>{formatMoney(inv.balance)}</td>
                                   <td>
-                                    {inv.url ? (
-                                      <a href={inv.url} target="_blank" rel="noopener noreferrer">
-                                        PDF
-                                      </a>
-                                    ) : (
-                                      <a
-                                        href="#"
-                                        onClick={async (e) => {
-                                          e.preventDefault();
-                                          try {
-                                            const raw = await api.account.invoice(inv.id) as Record<string, unknown>;
-                                            const url = String(raw?.invoice_url ?? "");
-                                            if (url) window.open(url, "_blank", "noopener");
-                                            else showToast("Invoice link not available.", "bad");
-                                          } catch { showToast("Could not load invoice.", "bad"); }
-                                        }}
-                                      >
-                                        PDF
-                                      </a>
-                                    )}
+                                    <a
+                                      href={api.account.invoicePdfUrl(inv.id)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      PDF
+                                    </a>
                                   </td>
                                 </tr>
                               );

@@ -60,6 +60,7 @@ export const api = {
     updateAddress: (id, b)  => apiFetch(`/account/addresses/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
     invoices:      ()       => apiFetch('/account/invoices'),
     invoice:       (id)     => apiFetch(`/account/invoices/${id}`),
+    invoicePdfUrl: (id)     => `/api/account/invoices/${id}/pdf`,
     payments:      ()       => apiFetch('/account/payments'),
   },
   coupons: {
