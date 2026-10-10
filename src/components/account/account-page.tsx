@@ -356,6 +356,39 @@ export function AccountPage() {
     return null;
   }
 
+  if (!bootstrap) {
+    return (
+      <main id="main" className="page-shell account295">
+        <section className="a295-intro">
+          <Container>
+            <div className="a295-intro-row">
+              <div className="a295-intro-copy">
+                <div className="a295-skeleton-lines" style={{ maxWidth: 320 }}>
+                  <div className="a295-skeleton-line" style={{ width: "40%", height: 11 }} />
+                  <div className="a295-skeleton-line" style={{ width: "60%", height: 32 }} />
+                </div>
+              </div>
+            </div>
+          </Container>
+        </section>
+        <section className="a295-body">
+          <Container>
+            <div className="a295-layout">
+              <aside className="a295-sidebar" />
+              <div className="a295-content">
+                <div className="a295-skeleton-lines" style={{ padding: "32px 0", maxWidth: 480 }}>
+                  {[70, 50, 60, 40, 55].map((w, i) => (
+                    <div key={i} className="a295-skeleton-line" style={{ width: `${w}%`, height: 14, marginBottom: 8 }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Container>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main id="main" className="page-shell account295">
       <section className="a295-intro">
@@ -808,9 +841,26 @@ export function AccountPage() {
                                   <td>{formatMoney(inv.total)}</td>
                                   <td>{formatMoney(inv.balance)}</td>
                                   <td>
-                                    <a href="#" onClick={handleInvoiceDownload}>
-                                      PDF
-                                    </a>
+                                    {inv.url ? (
+                                      <a href={inv.url} target="_blank" rel="noopener noreferrer">
+                                        PDF
+                                      </a>
+                                    ) : (
+                                      <a
+                                        href="#"
+                                        onClick={async (e) => {
+                                          e.preventDefault();
+                                          try {
+                                            const raw = await api.account.invoice(inv.id) as Record<string, unknown>;
+                                            const url = String(raw?.invoice_url ?? "");
+                                            if (url) window.open(url, "_blank", "noopener");
+                                            else showToast("Invoice link not available.", "bad");
+                                          } catch { showToast("Could not load invoice.", "bad"); }
+                                        }}
+                                      >
+                                        PDF
+                                      </a>
+                                    )}
                                   </td>
                                 </tr>
                               );
@@ -841,8 +891,8 @@ export function AccountPage() {
                             payments.map((p) => (
                               <tr key={p.id}>
                                 <td>{formatDate(p.date)}</td>
-                                <td>{p.mode || "Not provided"}</td>
-                                <td>{p.reference || "Not provided"}</td>
+                                <td>{p.mode || "Online"}</td>
+                                <td>{p.invoiceNumber || p.reference || "—"}</td>
                                 <td>{formatMoney(p.amount)}</td>
                               </tr>
                             ))
