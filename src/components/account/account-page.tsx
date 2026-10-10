@@ -52,7 +52,8 @@ import {
   statusInfo,
   ticketStatus,
 } from "@/lib/account/format";
-import type { AccountAddress, AccountBootstrap } from "@/lib/account/types";
+import { mapApiOrderDetail } from "@/lib/account/map-api-bootstrap";
+import type { AccountAddress, AccountBootstrap, AccountOrder } from "@/lib/account/types";
 
 function panelFromHash(hash: string): AccountPanelId {
   const id = hash.replace(/^#/, "") as AccountPanelId;
@@ -73,6 +74,7 @@ export function AccountPage() {
   const [orderQuery, setOrderQuery] = useState("");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState<AccountOrder | null>(null);
   const [newTicketOpen, setNewTicketOpen] = useState(false);
   const [newTicketOrderRef, setNewTicketOrderRef] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -165,6 +167,11 @@ export function AccountPage() {
 
   const openOrder = useCallback((orderId: string) => {
     setSelectedOrderId(orderId);
+    setSelectedOrderDetail(null);
+    api.account.order(orderId).then((raw: unknown) => {
+      const detail = mapApiOrderDetail(raw);
+      if (detail) setSelectedOrderDetail(detail);
+    }).catch(() => {});
   }, []);
 
   const openNewTicket = useCallback((orderNumber = "") => {
@@ -265,9 +272,21 @@ export function AccountPage() {
   const handleInvoiceDownload = useCallback(
     (e?: MouseEvent) => {
       e?.preventDefault();
-      showToast("Invoice download is unavailable right now. Please try again later.", "bad");
+      const ordersList = bootstrap?.orders ?? [];
+      const invoicesList = bootstrap?.invoices ?? [];
+      const order = selectedOrderDetail ?? ordersList.find((o) => o.id === selectedOrderId);
+      if (!order?.invoiceId) {
+        showToast("Invoice not available yet for this order.", "bad");
+        return;
+      }
+      const invoice = invoicesList.find((inv) => inv.id === order.invoiceId);
+      if (invoice?.url) {
+        window.open(invoice.url, "_blank", "noopener");
+      } else {
+        showToast("Invoice link not available. Please contact support.", "bad");
+      }
     },
-    [showToast]
+    [bootstrap, selectedOrderDetail, selectedOrderId, showToast]
   );
 
   const profile = bootstrap?.profile;
@@ -281,7 +300,7 @@ export function AccountPage() {
       : null;
   const selectedOrder =
     selectedOrderId != null
-      ? orders.find((o) => o.id === selectedOrderId) ?? null
+      ? selectedOrderDetail ?? orders.find((o) => o.id === selectedOrderId) ?? null
       : null;
 
   const firstName = profile?.firstName || "there";
@@ -999,7 +1018,7 @@ export function AccountPage() {
       <AccountOrderDialog
         order={selectedOrder}
         open={selectedOrderId !== null && selectedOrder !== null}
-        onClose={() => setSelectedOrderId(null)}
+        onClose={() => { setSelectedOrderId(null); setSelectedOrderDetail(null); }}
         onGetSupport={(orderNumber) => {
           goToPanel("support");
           openNewTicket(orderNumber);

@@ -152,8 +152,69 @@ export function mapApiInvoices(raw: unknown): import("@/lib/account/types").Acco
       total: Number(r.total ?? 0),
       balance: Number(r.balance ?? 0),
       orderNumber: r.salesorder_number ? String(r.salesorder_number) : undefined,
+      url: r.invoice_url ? String(r.invoice_url) : r.url ? String(r.url) : undefined,
     };
   });
+}
+
+export function mapApiOrderDetail(raw: unknown): import("@/lib/account/types").AccountOrder | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const so = (o.salesorder ?? o) as Record<string, unknown>;
+
+  const lineItems = Array.isArray(so.line_items) ? so.line_items : [];
+  const items = lineItems.map((li: Record<string, unknown>) => ({
+    name: String(li.name ?? li.item_name ?? ""),
+    variant: String(li.attribute_option_name1 ?? li.sku ?? ""),
+    quantity: Number(li.quantity ?? 1),
+    unitPrice: Number(li.rate ?? 0),
+    lineTotal: Number(li.item_total ?? 0),
+  }));
+
+  const invoices = Array.isArray(so.invoices) ? so.invoices as Record<string, unknown>[] : [];
+  const firstInvoice = invoices[0];
+
+  const billing = so.billing_address as Record<string, unknown> | undefined;
+  const shipping = so.shipping_address as Record<string, unknown> | undefined;
+
+  return {
+    id: String(so.salesorder_id ?? so.id ?? ""),
+    number: String(so.salesorder_number ?? so.number ?? ""),
+    date: String(so.date ?? so.created_time ?? ""),
+    status: String(so.status ?? "pending"),
+    stage: so.stage ? String(so.stage) : undefined,
+    total: Number(so.total ?? 0),
+    currencyCode: so.currency_code ? String(so.currency_code) : "₹",
+    subtotal: Number(so.sub_total ?? 0),
+    gst: Number(so.tax_total ?? 0),
+    shipping: Number(so.shipping_charge ?? 0),
+    discount: Number(so.discount_total ?? so.discount ?? 0) || undefined,
+    installation: Number(so.adjustment ?? 0) || undefined,
+    paymentMode: so.payment_mode ? String(so.payment_mode) : undefined,
+    paymentStatus: so.paid_status ? String(so.paid_status) : undefined,
+    items,
+    shipment: null,
+    billingAddress: billing ? {
+      id: "billing",
+      attention: String(billing.attention ?? ""),
+      address: String(billing.address ?? ""),
+      city: String(billing.city ?? ""),
+      state: String(billing.state ?? ""),
+      zip: String(billing.zip ?? ""),
+      country: String(billing.country ?? "India"),
+    } : undefined,
+    shippingAddress: shipping ? {
+      id: "shipping",
+      attention: String(shipping.attention ?? ""),
+      address: String(shipping.address ?? ""),
+      city: String(shipping.city ?? ""),
+      state: String(shipping.state ?? ""),
+      zip: String(shipping.zip ?? ""),
+      country: String(shipping.country ?? "India"),
+    } : undefined,
+    invoiceId: firstInvoice ? String(firstInvoice.invoice_id ?? "") : undefined,
+    invoiceNumber: firstInvoice ? String(firstInvoice.invoice_number ?? "") : undefined,
+  };
 }
 
 export function mapApiPayments(raw: unknown): import("@/lib/account/types").AccountPayment[] {

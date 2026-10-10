@@ -77,6 +77,7 @@ export type AccountInvoice = {
   total: number;
   balance: number;
   orderNumber?: string;
+  url?: string;
 };
 
 export type AccountPayment = {
