@@ -30,7 +30,7 @@ function normalizeShippingMethods(raw: unknown[]): ShippingMethod[] {
   return raw.map((m: any) => ({
     id: String(m.shipping_method_id ?? m.id ?? ""),
     name: m.shipping_method_name ?? m.name ?? "Standard shipping",
-    description: m.description ?? "",
+    description: m.delivery_time ?? m.description ?? "",
     rate: Number(m.rate ?? m.shipping_rate ?? 0),
   }));
 }
