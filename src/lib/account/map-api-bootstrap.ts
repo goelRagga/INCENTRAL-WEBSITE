@@ -134,6 +134,7 @@ export function mapApiOrders(ordersRaw: unknown): AccountOrder[] {
       stage: o.stage ? String(o.stage) : undefined,
       total: Number(o.total ?? o.grand_total ?? 0),
       currencyCode: o.currency_code ? String(o.currency_code) : "₹",
+      deviceCount: o.quantity ? Number(o.quantity) : undefined,
       items: [],
       shipment: null,
     };

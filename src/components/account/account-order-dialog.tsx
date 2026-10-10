@@ -17,6 +17,7 @@ import type { AccountOrder } from "@/lib/account/types";
 type AccountOrderDialogProps = {
   order: AccountOrder | null;
   open: boolean;
+  loading?: boolean;
   onClose: () => void;
   onGetSupport: (orderNumber: string) => void;
   onInvoiceDownload: () => void;
@@ -25,6 +26,7 @@ type AccountOrderDialogProps = {
 export function AccountOrderDialog({
   order,
   open,
+  loading,
   onClose,
   onGetSupport,
   onInvoiceDownload,
@@ -37,6 +39,7 @@ export function AccountOrderDialog({
   if (!mounted || !order) return null;
 
   const st = statusInfo(order.status);
+  const detailLoading = loading || order.items.length === 0;
 
   return createPortal(
     <dialog
@@ -82,60 +85,83 @@ export function AccountOrderDialog({
 
             <section className="a295-detail-block">
               <h3>Items</h3>
-              <div className="a295-order-items">
-                {order.items.map((item) => (
-                  <div key={`${item.name}-${item.variant}`} className="a295-order-item">
-                    <span className="a295-order-item-copy">
+              {detailLoading ? (
+                <div className="a295-skeleton-lines">
+                  <div className="a295-skeleton-line" style={{ width: "70%" }} />
+                  <div className="a295-skeleton-line" style={{ width: "50%" }} />
+                </div>
+              ) : (
+                <div className="a295-order-items">
+                  {order.items.map((item) => (
+                    <div key={`${item.name}-${item.variant}`} className="a295-order-item">
+                      <span className="a295-order-item-copy">
+                        <strong>
+                          {item.name} · {item.variant}
+                        </strong>
+                        <span>Quantity {item.quantity}</span>
+                      </span>
                       <strong>
-                        {item.name} · {item.variant}
+                        {formatMoney(item.lineTotal || item.unitPrice * item.quantity)}
                       </strong>
-                      <span>Quantity {item.quantity}</span>
-                    </span>
-                    <strong>
-                      {formatMoney(item.lineTotal || item.unitPrice * item.quantity)}
-                    </strong>
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="a295-detail-block">
               <h3>Payment &amp; totals</h3>
-              <div className="a295-detail-lines">
-                <div className="a295-detail-line">
-                  <span>Products</span>
-                  <strong>{formatMoney(order.subtotal ?? 0)}</strong>
+              {detailLoading ? (
+                <div className="a295-skeleton-lines">
+                  {[80, 60, 60, 60, 40].map((w, i) => (
+                    <div key={i} className="a295-skeleton-line" style={{ width: `${w}%` }} />
+                  ))}
                 </div>
-                <div className="a295-detail-line">
-                  <span>Installation</span>
-                  <strong>{formatMoney(order.installation ?? 0)}</strong>
-                </div>
-                <div className="a295-detail-line">
-                  <span>Shipping</span>
-                  <strong>{formatMoney(order.shipping ?? 0)}</strong>
-                </div>
-                {order.discount ? (
+              ) : (
+                <div className="a295-detail-lines">
+                  {order.subtotal != null && (
+                    <div className="a295-detail-line">
+                      <span>Products</span>
+                      <strong>{formatMoney(order.subtotal)}</strong>
+                    </div>
+                  )}
+                  {order.installation ? (
+                    <div className="a295-detail-line">
+                      <span>Installation</span>
+                      <strong>{formatMoney(order.installation)}</strong>
+                    </div>
+                  ) : null}
+                  {order.shipping != null && (
+                    <div className="a295-detail-line">
+                      <span>Shipping</span>
+                      <strong>{formatMoney(order.shipping)}</strong>
+                    </div>
+                  )}
+                  {order.discount ? (
+                    <div className="a295-detail-line">
+                      <span>Discount</span>
+                      <strong>−{formatMoney(order.discount)}</strong>
+                    </div>
+                  ) : null}
+                  {order.gst != null && (
+                    <div className="a295-detail-line">
+                      <span>GST (18%)</span>
+                      <strong>{formatMoney(order.gst)}</strong>
+                    </div>
+                  )}
                   <div className="a295-detail-line">
-                    <span>Discount</span>
-                    <strong>−{formatMoney(order.discount)}</strong>
+                    <span>Total</span>
+                    <strong>{formatMoney(order.total)}</strong>
                   </div>
-                ) : null}
-                <div className="a295-detail-line">
-                  <span>GST</span>
-                  <strong>{formatMoney(order.gst ?? 0)}</strong>
+                  <div className="a295-detail-line">
+                    <span>Payment</span>
+                    <strong>
+                      {order.paymentMode || "Online"} ·{" "}
+                      {statusInfo(order.paymentStatus ?? order.status).label}
+                    </strong>
+                  </div>
                 </div>
-                <div className="a295-detail-line">
-                  <span>Total</span>
-                  <strong>{formatMoney(order.total)}</strong>
-                </div>
-                <div className="a295-detail-line">
-                  <span>Payment</span>
-                  <strong>
-                    {order.paymentMode || "Not provided"} ·{" "}
-                    {statusInfo(order.paymentStatus).label}
-                  </strong>
-                </div>
-              </div>
+              )}
             </section>
 
             <section className="a295-detail-block">
@@ -184,16 +210,30 @@ export function AccountOrderDialog({
 
             <section className="a295-detail-block">
               <h3>Shipping address</h3>
-              <p style={{ margin: 0, color: "#5d7079", fontSize: 12, lineHeight: 1.55 }}>
-                {formatAddressLines(order.shippingAddress)}
-              </p>
+              {detailLoading ? (
+                <div className="a295-skeleton-lines">
+                  <div className="a295-skeleton-line" style={{ width: "60%" }} />
+                  <div className="a295-skeleton-line" style={{ width: "45%" }} />
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: "#5d7079", fontSize: 12, lineHeight: 1.55 }}>
+                  {formatAddressLines(order.shippingAddress)}
+                </p>
+              )}
             </section>
 
             <section className="a295-detail-block">
               <h3>Billing address</h3>
-              <p style={{ margin: 0, color: "#5d7079", fontSize: 12, lineHeight: 1.55 }}>
-                {formatAddressLines(order.billingAddress)}
-              </p>
+              {detailLoading ? (
+                <div className="a295-skeleton-lines">
+                  <div className="a295-skeleton-line" style={{ width: "60%" }} />
+                  <div className="a295-skeleton-line" style={{ width: "45%" }} />
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: "#5d7079", fontSize: 12, lineHeight: 1.55 }}>
+                  {formatAddressLines(order.billingAddress)}
+                </p>
+              )}
             </section>
           </div>
 

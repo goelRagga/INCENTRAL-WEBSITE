@@ -270,7 +270,7 @@ export function AccountPage() {
   );
 
   const handleInvoiceDownload = useCallback(
-    (e?: MouseEvent) => {
+    async (e?: MouseEvent) => {
       e?.preventDefault();
       const ordersList = bootstrap?.orders ?? [];
       const invoicesList = bootstrap?.invoices ?? [];
@@ -279,11 +279,22 @@ export function AccountPage() {
         showToast("Invoice not available yet for this order.", "bad");
         return;
       }
-      const invoice = invoicesList.find((inv) => inv.id === order.invoiceId);
-      if (invoice?.url) {
-        window.open(invoice.url, "_blank", "noopener");
-      } else {
-        showToast("Invoice link not available. Please contact support.", "bad");
+      // Try bootstrap cache first, then fetch directly
+      const cached = invoicesList.find((inv) => inv.id === order.invoiceId);
+      if (cached?.url) {
+        window.open(cached.url, "_blank", "noopener");
+        return;
+      }
+      try {
+        const raw = await api.account.invoice(order.invoiceId) as Record<string, unknown>;
+        const url = String(raw?.invoice_url ?? raw?.url ?? "");
+        if (url) {
+          window.open(url, "_blank", "noopener");
+        } else {
+          showToast("Invoice link not available. Please contact support.", "bad");
+        }
+      } catch {
+        showToast("Could not load invoice. Please try again.", "bad");
       }
     },
     [bootstrap, selectedOrderDetail, selectedOrderId, showToast]
@@ -683,7 +694,7 @@ export function AccountPage() {
                     ) : (
                       filteredOrders.map((o) => {
                         const st = statusInfo(o.status);
-                        const devices = orderDeviceCount(o.items);
+                        const devices = o.deviceCount ?? orderDeviceCount(o.items);
                         return (
                           <article key={o.id} className="a295-order-card">
                             <div className="a295-order-card-main">
@@ -1018,6 +1029,7 @@ export function AccountPage() {
       <AccountOrderDialog
         order={selectedOrder}
         open={selectedOrderId !== null && selectedOrder !== null}
+        loading={selectedOrderId !== null && selectedOrderDetail === null}
         onClose={() => { setSelectedOrderId(null); setSelectedOrderDetail(null); }}
         onGetSupport={(orderNumber) => {
           goToPanel("support");

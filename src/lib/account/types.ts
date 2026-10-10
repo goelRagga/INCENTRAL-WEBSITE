@@ -52,6 +52,7 @@ export type AccountOrder = {
   stage?: string;
   total: number;
   currencyCode?: string;
+  deviceCount?: number;
   subtotal?: number;
   shipping?: number;
   installation?: number;
