@@ -208,6 +208,7 @@ export function CheckoutPageContent() {
     setTermsError("");
     setPaymentError("");
     clearCart();
+    checkoutApi.clearSession();
     window.location.href = paymentUrl;
   };
 
